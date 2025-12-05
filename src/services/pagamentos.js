@@ -1,5 +1,8 @@
 // src/services/pagamentos.js
 
+// Necessário para garantir fetch no navegador + build
+import 'whatwg-fetch';
+
 // URL do backend em produção
 const API_URL = "https://metanoia-app.onrender.com/api";
 
