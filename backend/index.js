@@ -1,19 +1,15 @@
 // backend/index.js
 
-// ATENÇÃO: Desativar esta linha em produção se o ambiente permitir validação de certificado!
-// Mantido aqui conforme o código original, mas use com cautela.
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 const path = require('path');
 const dotenv = require('dotenv');
 const express = require("express");
 const cors = require("cors");
 
 // -----------------------
-// Carrega o arquivo .env padrão (que agora contém as credenciais de PRODUÇÃO)
+// Carrega o arquivo .env (produção)
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-console.log(`🚀 Servidor configurado para Produção`);
+console.log(`🚀 Servidor inicializado`);
 console.log(`API URL PagBank: ${process.env.PAGBANK_API_URL}`);
 
 // -----------------------
@@ -21,26 +17,29 @@ console.log(`API URL PagBank: ${process.env.PAGBANK_API_URL}`);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS
+// CORS configurado para produção
 app.use(cors({
-  origin: "*",
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  origin: [
+    "https://metanoia-app.vercel.app",
+    "http://localhost:5173"
+  ],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
 }));
 
-// Middlewares de parser
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Test route
 app.get("/", (req, res) => {
-  res.status(200).send("Servidor Pagamentos OK!");
+  res.status(200).send("Servidor Pagamentos OK!");
 });
 
 // Rotas de pagamentos
 const pagamentosRoutes = require("./routes/pagamentos");
 app.use("/api", pagamentosRoutes);
 
-// Start server
+// Start
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
