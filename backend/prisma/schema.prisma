@@ -8,9 +8,21 @@
 
 generator client {
   provider = "prisma-client"
-  // Linha removida! O Prisma usará o caminho padrão.
+  output   = "../generated/prisma" // <== LINHA RESTAURADA
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Model de Exemplo para o Cardápio (Ajuste se necessário)
+model ItemCardapio {
+  id          String @id @default(uuid())
+  nome        String
+  descricao   String
+  preco       Decimal
+  categoria   String // ex: 'hamburgueres', 'combos', 'bebidas', 'acompanhamentos'
+
+  @@map("itens_cardapio")
 }

@@ -4,10 +4,11 @@ const path = require('path');
 const dotenv = require('dotenv');
 const express = require("express");
 const cors = require("cors");
-// --- NOVO CÓDIGO AQUI (Prisma Require) ---
-const { PrismaClient } = require('@prisma/client');
+// --- CORREÇÃO AQUI: Importando do caminho customizado ---
+// O Prisma Client foi gerado em ./generated/prisma/client por causa do schema.prisma
+const { PrismaClient } = require('./generated/prisma/client'); 
 const prisma = new PrismaClient();
-// -----------------------------------------
+// --------------------------------------------------------
 
 // -----------------------
 // Carrega o arquivo .env (produção)
@@ -39,29 +40,27 @@ app.get("/", (req, res) => {
   res.status(200).send("Servidor Pagamentos OK!");
 });
 
-// --- NOVO CÓDIGO AQUI (Health Check Route) ---
 // ROTA DE TESTE DE CONEXÃO COM O BANCO DE DADOS
 app.get('/health-check-db', async (req, res) => {
-    try {
-        // Tenta buscar o primeiro item do cardápio.
-        // Se a conexão com o Neon falhar, o erro será capturado.
-        await prisma.itemCardapio.findFirst(); 
-        
-        res.status(200).json({
-            status: "OK",
-            message: "Conexão com Neon Postgres estabelecida com sucesso!"
-        });
+    try {
+        // Tenta buscar o primeiro item do cardápio.
+        // Se a conexão com o Neon falhar, o erro será capturado.
+        await prisma.itemCardapio.findFirst(); 
+        
+        res.status(200).json({
+            status: "OK",
+            message: "Conexão com Neon Postgres estabelecida com sucesso!"
+        });
 
-    } catch (error) {
-        console.error("Erro na conexão com o DB:", error.message);
-        res.status(500).json({
-            status: "ERROR",
-            message: "Falha na conexão. Verifique a DATABASE_URL no Render ou a migração.",
-            error_detail: error.message
-        });
-    }
+    } catch (error) {
+        console.error("Erro na conexão com o DB:", error.message);
+        res.status(500).json({
+            status: "ERROR",
+            message: "Falha na conexão. Verifique a DATABASE_URL no Render ou a migração.",
+            error_detail: error.message
+        });
+    }
 });
-// ----------------------------------------------
 
 // Rotas de pagamentos
 const pagamentosRoutes = require("./routes/pagamentos");
