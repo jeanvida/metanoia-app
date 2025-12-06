@@ -1,3 +1,5 @@
+// backend/prisma/schema.prisma
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -5,10 +7,10 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client"
+  // Linha removida! O Prisma usará o caminho padrão.
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql"
 }
