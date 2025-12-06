@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url removido para Prisma 7
 }
 
 // Model de Exemplo para o Cardápio
