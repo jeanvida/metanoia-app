@@ -5,12 +5,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url removida, Prisma 7 não permite mais aqui
+  // DATABASE_URL será pego do .env
 }
 
 // Model de Exemplo para o Cardápio
 model ItemCardapio {
-  id         String  @id @default(uuid())
+  id         String   @id @default(uuid())
   nome       String
   descricao  String
   preco      Decimal
