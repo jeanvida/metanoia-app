@@ -5,12 +5,14 @@ const dotenv = require('dotenv');
 const express = require("express");
 const cors = require("cors");
 
-// Carrega .env local (para dev) antes do Prisma
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Carrega .env local somente em desenvolvimento
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: path.resolve(__dirname, '.env') });
+}
 
 // Prisma 7: import do client gerado
 const { PrismaClient } = require('./generated/prisma/client'); 
-const prisma = new PrismaClient(); // <- sem datasources, sem URL
+const prisma = new PrismaClient(); // Prisma pega a DATABASE_URL do environment
 
 // Inicialização do Express
 const app = express();
@@ -36,20 +38,20 @@ app.get("/", (req, res) => {
 
 // Health check DB
 app.get('/health-check-db', async (req, res) => {
-    try {
-        await prisma.itemCardapio.findFirst();
-        res.status(200).json({
-            status: "OK",
-            message: "Conexão com Neon Postgres estabelecida!"
-        });
-    } catch (error) {
-        console.error("Erro na conexão com o DB:", error.message);
-        res.status(500).json({
-            status: "ERROR",
-            message: "Falha na conexão. Verifique a DATABASE_URL no Render.",
-            error_detail: error.message
-        });
-    }
+  try {
+    await prisma.itemCardapio.findFirst();
+    res.status(200).json({
+      status: "OK",
+      message: "Conexão com Neon Postgres estabelecida!"
+    });
+  } catch (error) {
+    console.error("Erro na conexão com o DB:", error.message);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Falha na conexão. Verifique a DATABASE_URL no Render.",
+      error_detail: error.message
+    });
+  }
 });
 
 // Rotas de pagamentos

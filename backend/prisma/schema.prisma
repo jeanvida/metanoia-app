@@ -1,11 +1,11 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma" // caminho customizado para o backend
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  // DATABASE_URL será pego do .env
+  url      = env("DATABASE_URL")
 }
 
 // Model de Exemplo para o Cardápio
