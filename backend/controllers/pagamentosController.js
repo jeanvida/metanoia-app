@@ -1,24 +1,15 @@
-// backend/controllers/pagamento.controller.js
-
 const pagbankService = require('../services/pagbank.service');
-const dotenv = require('dotenv');
-const path = require('path');
-
-// Carrega o .env
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Prisma 7: import do client gerado
-const { PrismaClient } = require('../generated/prisma/client');
+const { PrismaClient } = require('../generated/prisma/client'); 
 const prisma = new PrismaClient();
 
-// === Cartão (APENAS PROD) ===
+// Cartão
 exports.processarCartao = async (req, res) => {
     try {
         const dadosTransacao = req.body;
-        console.log('Recebida requisição Cartão com dados:', JSON.stringify(dadosTransacao, null, 2));
 
         const resultadoPagBank = await pagbankService.processarTransacaoCartao(dadosTransacao);
-        console.log("✅ Resultado PagBank Cartão:", JSON.stringify(resultadoPagBank, null, 2));
 
         await prisma.itemCardapio.create({
             data: {
@@ -29,28 +20,26 @@ exports.processarCartao = async (req, res) => {
             }
         });
 
-        return res.status(200).json({
+        return res.status(200).json({ 
             mensagem: "Transação enviada para PagBank.",
-            transacao: resultadoPagBank
+            transacao: resultadoPagBank 
         });
 
     } catch (error) {
-        console.error('❌ Erro no processamento do Cartão:', error);
-        return res.status(500).json({
-            erro: 'Falha ao processar pagamento com cartão.',
-            detalhe: error.message
+        console.error('Erro no processamento do Cartão:', error);
+        return res.status(500).json({ 
+            erro: 'Falha ao processar pagamento com cartão.', 
+            detalhe: error.message 
         });
     }
 };
 
-// === PIX (APENAS PROD) ===
+// PIX
 exports.processarPix = async (req, res) => {
     try {
         const dadosTransacao = req.body;
-        console.log('Recebida requisição PIX com dados:', JSON.stringify(dadosTransacao, null, 2));
 
         const resultadoPagBank = await pagbankService.criarCobrancaPix(dadosTransacao);
-        console.log("✅ Resultado PagBank PIX:", JSON.stringify(resultadoPagBank, null, 2));
 
         await prisma.itemCardapio.create({
             data: {
@@ -61,16 +50,16 @@ exports.processarPix = async (req, res) => {
             }
         });
 
-        return res.status(200).json({
+        return res.status(200).json({ 
             mensagem: "Cobrança PIX gerada com sucesso.",
-            transacao: resultadoPagBank
+            transacao: resultadoPagBank 
         });
 
     } catch (error) {
-        console.error('❌ Erro na criação da cobrança PIX:', error);
-        return res.status(500).json({
-            erro: 'Falha ao gerar cobrança PIX.',
-            detalhe: error.message
+        console.error('Erro na criação da cobrança PIX:', error);
+        return res.status(500).json({ 
+            erro: 'Falha ao gerar cobrança PIX.', 
+            detalhe: error.message 
         });
     }
 };
