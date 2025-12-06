@@ -1,8 +1,8 @@
 const pagbankService = require('../services/pagbank.service');
 
-// Prisma 7: import do caminho customizado
-const { PrismaClient } = require('../generated/prisma/client');
-const prisma = new PrismaClient(); // ← CORRIGIDO
+// Prisma 7: import do client gerado
+const { PrismaClient } = require('../generated/prisma/client'); 
+const prisma = new PrismaClient(); // ← SEM datasources nem URL
 
 // Cartão (APENAS PROD)
 exports.processarCartao = async (req, res) => {

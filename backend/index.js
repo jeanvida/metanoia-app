@@ -8,9 +8,10 @@ const cors = require("cors");
 // Carrega o arquivo .env (produção) ANTES do Prisma
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-// Prisma 7: import do caminho customizado
+// Prisma 7: import do client gerado
 const { PrismaClient } = require('./generated/prisma/client'); 
-const prisma = new PrismaClient(); // ← CORRIGIDO
+const prisma = new PrismaClient(); // ← SEM datasources nem URL
+
 
 // Inicialização do Express
 const app = express();
