@@ -4,9 +4,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const express = require("express");
 const cors = require("cors");
-// --- CORREÇÃO AQUI: Importando do caminho customizado ---
-// O Prisma Client foi gerado em ./generated/prisma/client por causa do schema.prisma
-const { PrismaClient } = require('./generated/prisma/client'); 
+// --- CORREÇÃO FINAL: Importando do caminho PADRÃO ---
+const { PrismaClient } = require('@prisma/client'); 
 const prisma = new PrismaClient();
 // --------------------------------------------------------
 

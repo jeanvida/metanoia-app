@@ -8,12 +8,12 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma" // <== MANTIDO para resolver o erro de módulo no Render
+  // LINHA 'output' REMOVIDA PARA USAR O CAMINHO PADRÃO
 }
 
 datasource db {
   provider = "postgresql"
-  // LINHA 'url = env("DATABASE_URL")' FOI REMOVIDA para resolver o erro P1012 (Prisma 7)
+  // LINHA 'url' REMOVIDA para resolver o erro P1012 (Prisma 7)
 }
 
 // Model de Exemplo para o Cardápio (Ajuste se necessário)
