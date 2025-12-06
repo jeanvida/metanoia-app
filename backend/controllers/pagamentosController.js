@@ -1,27 +1,18 @@
 const pagbankService = require('../services/pagbank.service');
 
-// === Prisma 7: import do caminho customizado ===
+// Prisma 7: import do caminho customizado
 const { PrismaClient } = require('../generated/prisma/client');
-const prisma = new PrismaClient({
-  datasources: {
-    db: { url: process.env.DATABASE_URL }
-  }
-});
-// ============================================
+const prisma = new PrismaClient(); // ← CORRIGIDO
 
-// ====================
 // Cartão (APENAS PROD)
-// ====================
 exports.processarCartao = async (req, res) => {
     try {
         const dadosTransacao = req.body;
         console.log('Recebida requisição Cartão com dados:', JSON.stringify(dadosTransacao, null, 2));
 
-        // Chama o serviço PagBank
         const resultadoPagBank = await pagbankService.processarTransacaoCartao(dadosTransacao); 
         console.log("✅ Resultado PagBank Cartão:", JSON.stringify(resultadoPagBank, null, 2));
 
-        // Salva no banco (exemplo)
         await prisma.itemCardapio.create({
             data: {
                 nome: "Exemplo Registro Cartão",
@@ -45,9 +36,7 @@ exports.processarCartao = async (req, res) => {
     }
 };
 
-// ====================
 // PIX (APENAS PROD)
-// ====================
 exports.processarPix = async (req, res) => {
     try {
         const dadosTransacao = req.body;
@@ -56,7 +45,6 @@ exports.processarPix = async (req, res) => {
         const resultadoPagBank = await pagbankService.criarCobrancaPix(dadosTransacao);
         console.log("✅ Resultado PagBank PIX:", JSON.stringify(resultadoPagBank, null, 2));
 
-        // Salva no banco (exemplo)
         await prisma.itemCardapio.create({
             data: {
                 nome: "Exemplo Registro PIX",

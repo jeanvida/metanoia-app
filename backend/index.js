@@ -5,22 +5,13 @@ const dotenv = require('dotenv');
 const express = require("express");
 const cors = require("cors");
 
-// -----------------------
 // Carrega o arquivo .env (produção) ANTES do Prisma
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-// --- Prisma 7: import do caminho customizado ---
+// Prisma 7: import do caminho customizado
 const { PrismaClient } = require('./generated/prisma/client'); 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    }
-  }
-});
-// --------------------------------------------------------
+const prisma = new PrismaClient(); // ← CORRIGIDO
 
-// -----------------------
 // Inicialização do Express
 const app = express();
 const PORT = process.env.PORT || 3001;
