@@ -4,13 +4,14 @@
   "description": "Backend para sistema de cardápio digital com pagamentos PagBank",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+  "start": "node index.js",
+  "dev": "nodemon index.js",
+  "postinstall": "npx prisma generate" 
   },
   "keywords": [
-    "express",
-    "pagbank",
-    "api"
+  "express",
+  "pagbank",
+  "api"
   ],
   "author": "",
   "license": "ISC",

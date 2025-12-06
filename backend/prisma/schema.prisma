@@ -8,20 +8,21 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma" // <== LINHA RESTAURADA
+  output   = "../generated/prisma" // <== MANTIDO para resolver o erro de módulo no Render
 }
 
 datasource db {
   provider = "postgresql"
+  // LINHA 'url = env("DATABASE_URL")' FOI REMOVIDA para resolver o erro P1012 (Prisma 7)
 }
 
 // Model de Exemplo para o Cardápio (Ajuste se necessário)
 model ItemCardapio {
-  id          String @id @default(uuid())
-  nome        String
-  descricao   String
-  preco       Decimal
-  categoria   String // ex: 'hamburgueres', 'combos', 'bebidas', 'acompanhamentos'
+  id          String @id @default(uuid())
+  nome        String
+  descricao   String
+  preco       Decimal
+  categoria   String // ex: 'hamburgueres', 'combos', 'bebidas', 'acompanhamentos'
 
-  @@map("itens_cardapio")
+  @@map("itens_cardapio")
 }
