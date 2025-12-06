@@ -1,15 +1,11 @@
 // backend/services/pagbank.service.js
-const fetch = require('node-fetch');
 
-// ===================================
-// CONFIGURAÇÃO PAGBANK PRODUÇÃO
-// ===================================
+// No Node 18+, fetch já existe
+const fetchFn = globalThis.fetch || require('node-fetch');
+
 const API_URL = process.env.PAGBANK_API_URL;
 const AUTH_TOKEN = process.env.PAGBANK_TOKEN;
 
-// ===================================
-// FUNÇÃO GENÉRICA PAGBANK
-// ===================================
 async function callPagBankApi(endpoint, method, data = null) {
     const headers = {
         "Authorization": `Bearer ${AUTH_TOKEN}`,
@@ -22,7 +18,7 @@ async function callPagBankApi(endpoint, method, data = null) {
     console.log("➡️ Chamando:", `${API_URL}/${endpoint}`);
     console.log("📦 Body:", JSON.stringify(data, null, 2));
 
-    const response = await fetch(`${API_URL}/${endpoint}`, config);
+    const response = await fetchFn(`${API_URL}/${endpoint}`, config);
 
     let responseData;
     try {
@@ -45,12 +41,10 @@ async function callPagBankApi(endpoint, method, data = null) {
     return responseData;
 }
 
-// ===================================
-// 1) PAGAMENTO PIX (100% CORRETO)
-// ===================================
 exports.criarCobrancaPix = async (dados) => {
     try {
         const { cliente, valor, descricao } = dados;
+        if (!cliente || !valor) throw new Error("Dados do cliente ou valor faltando");
 
         const expiration = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
@@ -70,14 +64,14 @@ exports.criarCobrancaPix = async (dados) => {
             ],
             shipping: {
                 address: {
-                    street: cliente.endereco,
-                    number: cliente.numero,
+                    street: cliente.endereco || "",
+                    number: cliente.numero || "",
                     complement: cliente.ap || "",
-                    locality: cliente.bairro,
-                    city: cliente.cidade,
-                    region: cliente.uf,
+                    locality: cliente.bairro || "",
+                    city: cliente.cidade || "",
+                    region: cliente.uf || "",
                     country: "BRA",
-                    postal_code: cliente.cep.replace(/\D/g, "")
+                    postal_code: (cliente.cep || "").replace(/\D/g, "")
                 }
             },
             payment_method: {
@@ -86,7 +80,6 @@ exports.criarCobrancaPix = async (dados) => {
             }
         };
 
-        // PIX na API nova é criado via /orders
         return await callPagBankApi("orders", "POST", body);
 
     } catch (err) {
@@ -95,14 +88,12 @@ exports.criarCobrancaPix = async (dados) => {
     }
 };
 
-// ===================================
-// 2) PAGAMENTO CARTÃO (100% CORRETO)
-// ===================================
 exports.processarTransacaoCartao = async (dados) => {
     try {
         const { cliente, total, cartao } = dados;
+        if (!cliente || !total || !cartao) throw new Error("Dados incompletos para cartão");
 
-        let [exp_month, exp_year] = cartao.validade.split("/");
+        let [exp_month, exp_year] = (cartao.validade || "01/30").split("/");
         if (exp_year.length === 2) exp_year = "20" + exp_year;
 
         const body = {
@@ -121,14 +112,14 @@ exports.processarTransacaoCartao = async (dados) => {
             ],
             shipping: {
                 address: {
-                    street: cliente.endereco,
-                    number: cliente.numero,
+                    street: cliente.endereco || "",
+                    number: cliente.numero || "",
                     complement: cliente.ap || "",
-                    locality: cliente.bairro,
-                    city: cliente.cidade,
-                    region: cliente.uf,
+                    locality: cliente.bairro || "",
+                    city: cliente.cidade || "",
+                    region: cliente.uf || "",
                     country: "BRA",
-                    postal_code: cliente.cep.replace(/\D/g, "")
+                    postal_code: (cliente.cep || "").replace(/\D/g, "")
                 }
             },
             payment_method: {
@@ -136,7 +127,7 @@ exports.processarTransacaoCartao = async (dados) => {
                 installments: 1,
                 capture: true,
                 card: {
-                    number: cartao.numero.replace(/\s/g, ""),
+                    number: (cartao.numero || "").replace(/\s/g, ""),
                     exp_month,
                     exp_year,
                     security_code: cartao.cvv,
@@ -148,7 +139,6 @@ exports.processarTransacaoCartao = async (dados) => {
             }
         };
 
-        // Cartão também usa o endpoint /orders
         return await callPagBankApi("orders", "POST", body);
 
     } catch (err) {

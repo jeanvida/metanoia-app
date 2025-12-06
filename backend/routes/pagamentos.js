@@ -1,16 +1,16 @@
 // backend/routes/pagamentos.js
 
 const express = require('express');
-const router = express.Router(); // Cria a instância do roteador
+const router = express.Router();
 const pagamentosController = require('../controllers/pagamentosController');
 
-// Rota para processar pagamento com Cartão de Crédito
+// Processar pagamento com Cartão de Crédito
 // POST /api/pagar/cartao
 router.post('/pagar/cartao', pagamentosController.processarCartao);
 
-// Rota para criar cobrança PIX
+// Criar cobrança PIX
 // POST /api/pagar/pix
 router.post('/pagar/pix', pagamentosController.processarPix);
 
-// A CORREÇÃO PRINCIPAL: Exportar a instância do router
+// Exporta o router para ser usado no index.js
 module.exports = router;
