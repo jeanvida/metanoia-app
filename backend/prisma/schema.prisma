@@ -1,28 +1,20 @@
-// backend/prisma/schema.prisma
-
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  // LINHA 'output' REMOVIDA PARA USAR O CAMINHO PADRÃO
+  provider = "prisma-client-js"
+  output   = "../generated/prisma" // caminho customizado para o backend
 }
 
 datasource db {
-  provider = "postgresql"
-  // LINHA 'url' REMOVIDA para resolver o erro P1012 (Prisma 7)
+  provider = "postgresql"
+  // url removida, Prisma 7 não permite mais aqui
 }
 
-// Model de Exemplo para o Cardápio (Ajuste se necessário)
+// Model de Exemplo para o Cardápio
 model ItemCardapio {
-  id          String @id @default(uuid())
-  nome        String
-  descricao   String
-  preco       Decimal
-  categoria   String // ex: 'hamburgueres', 'combos', 'bebidas', 'acompanhamentos'
+  id         String  @id @default(uuid())
+  nome       String
+  descricao  String
+  preco      Decimal
+  categoria  String
 
-  @@map("itens_cardapio")
+  @@map("itens_cardapio")
 }
