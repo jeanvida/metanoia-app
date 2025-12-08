@@ -1,3 +1,7 @@
+const pagbankService = require('../services/pagbank.service');
+const { PrismaClient } = require('../generated/prisma');
+const prisma = new PrismaClient();
+
 // Cartão
 exports.processarCartao = async (req, res) => {
     try {
