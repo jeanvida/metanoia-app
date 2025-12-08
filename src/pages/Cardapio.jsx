@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 // 1. Importando as funções de serviço que se comunicarão com o backend
 import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamentos";
 
+// 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 export default function Cardapio() {
   const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
   const [categoriaAtiva, setCategoriaAtiva] = useState("Hamburgueres");
@@ -25,11 +28,12 @@ export default function Cardapio() {
   const [statusPagamento, setStatusPagamento] = useState("");
   const [loadingPagamento, setLoadingPagamento] = useState(false);
   const [pixData, setPixData] = useState(null);
-
-  // REMOVIDO: Seleção de ambiente
-  // const [ambiente, setAmbiente] = useState("sandbox"); // sandbox ou producao
+  
+  // Ponto 4: Histórico de transações
+  const [transacoes, setTransacoes] = useState([]);
 
   // ===== Produtos =====
+  // Mantemos o estado inicial vazio/fixo, mas a lógica de carregamento será alterada no useEffect
   const produtosFixos = {
     Hamburgueres: [],
     Combos: [
@@ -47,25 +51,65 @@ export default function Cardapio() {
   };
   const [produtos, setProdutos] = useState(produtosFixos);
 
-  // Carregar hamburgueres do Admin
+  // 2. Carregar itens do cardápio via API e Ponto 4: Carregar histórico de transações
   useEffect(() => {
-    const hamburgueresLS = localStorage.getItem("hamburgueres");
-    if (hamburgueresLS) {
-      const lista = JSON.parse(hamburgueresLS);
-      setProdutos((prev) => ({
-        ...prev,
-        Hamburgueres: lista.map((h, idx) => ({
-          id: 100 + idx,
-          nome: h.nome,
-          descricao: h.descricao,
-          preco: Number(h.preco),
-          img: h.foto || "burger.png",
-        })),
-      }));
-    }
-  }, []);
+    // Função para carregar itens da API
+    const carregarItens = async () => {
+      try {
+        // Substituir o carregamento do localStorage
+        const response = await fetch(`${API_URL}/api/itens`);
+        if (!response.ok) throw new Error('Falha ao buscar itens da API');
+        const itens = await response.json();
 
-  // ===== Carrinho =====
+        // Agrupar os itens por categoria e salvar no state produtos.
+        const itensAgrupados = itens.reduce((acc, item) => {
+          const categoria = item.categoria || 'Outros';
+          if (!acc[categoria]) {
+            acc[categoria] = [];
+          }
+          // Ajusta a estrutura para corresponder ao formato esperado
+          acc[categoria].push({
+            id: item.id,
+            nome: item.nome,
+            descricao: item.descricao,
+            preco: Number(item.preco),
+            img: item.foto || "burger.png",
+          });
+          return acc;
+        }, { ...produtosFixos }); // Começa com os fixos para garantir as categorias
+
+        setProdutos(itensAgrupados);
+
+      } catch (error) {
+        console.error("Erro ao carregar cardápio da API:", error);
+        // Mantém o fallback de localStorage (anteriormente apenas para Hamburgueres), mas agora vazio para seguir a instrução.
+        // O código original que carregava do localStorage (para Hamburgueres) foi removido daqui:
+        /*
+        const hamburgueresLS = localStorage.getItem("hamburgueres");
+        if (hamburgueresLS) { ... }
+        */
+        // Se houver necessidade de manter os produtos fixos em caso de falha da API, descomente a linha abaixo:
+        // setProdutos(produtosFixos); 
+      }
+    };
+    
+	// Ponto 4: Carregar e salvar histórico de transações
+    const carregarTransacoes = async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/transacoes`);
+            if (!response.ok) throw new Error('Falha ao buscar histórico de transações');
+            const txs = await response.json();
+            setTransacoes(txs);
+        } catch (error) {
+            console.error("Erro ao carregar transações:", error);
+        }
+    };
+
+    carregarItens();
+    carregarTransacoes();
+  }, []); // Executa apenas na montagem
+
+  // ===== Carrinho (Lógica de localStorage mantida) =====
   const [carrinho, setCarrinho] = useState([]);
 
   useEffect(() => {
@@ -110,7 +154,7 @@ export default function Cardapio() {
     0
   );
 
-  // ===== Frete automático / ViaCEP =====
+  // ===== Frete automático / ViaCEP (Mantida) =====
   useEffect(() => {
     if (frete.cep.length === 8 || frete.cep.length === 9) {
       calcularFrete();
@@ -148,6 +192,39 @@ export default function Cardapio() {
     }
   }
 
+  // Função Auxiliar para Criar Pedido no Backend (Ponto 3)
+  async function criarPedidoBackend(statusPagamento) {
+    const dadosPedido = {
+      clienteNome: cliente.nome,
+      clienteTelefone: cliente.telefone,
+      itens: carrinho.map(item => ({
+        itemId: item.id,
+        quantidade: item.quantidade,
+        precoUnit: item.preco
+      })),
+      valorTotal: total + frete.valor,
+      tipoPagamento: statusPagamento.includes('PIX') ? 'PIX' : 'CARTAO',
+      status: statusPagamento,
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/api/pedidos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dadosPedido),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao registrar pedido no backend.');
+      }
+      
+      return await response.json(); // Retorna o pedido criado, se necessário
+    } catch (err) {
+      console.error("Erro ao criar pedido:", err);
+      return null;
+    }
+  }
+
   // ===== Pagamento - Funções de Ação =====
 
   function irParaPagamento() {
@@ -179,8 +256,12 @@ export default function Cardapio() {
 
     try {
       const resultado = await efetuarPagamentoCartao(dadosParaBackend);
-      const statusFinal = resultado.transacao.status || "APROVADO";
-      setStatusPagamento(`Pagamento ${statusFinal}! Transação ID: ${resultado.transacao.id}`);
+      const statusPagBank = resultado.transacao.status || "APROVADO";
+      
+      // Ponto 3: Criar pedido no backend APÓS o Pagamento
+      await criarPedidoBackend(statusPagBank); 
+
+      setStatusPagamento(`Pagamento ${statusPagBank}! Transação ID: ${resultado.transacao.id}`);
     } catch (err) {
       console.error("Erro ao pagar com Cartão:", err);
       setStatusPagamento(`Falha: ${err.message}`);
@@ -220,6 +301,10 @@ export default function Cardapio() {
 
         setPixData(pixDataFormatado);
         setStatusPagamento("Cobrança PIX gerada com sucesso! Escaneie o QR Code.");
+        
+        // Ponto 3: Criar pedido no backend (com status PENDENTE)
+        await criarPedidoBackend('PENDENTE');
+
       } else {
         setStatusPagamento("Falha: Resposta de PIX inválida do PagBank.");
       }
@@ -235,18 +320,7 @@ export default function Cardapio() {
     <div style={styles.container}>
 
       {/* REMOVIDO: Seletor de Ambiente */}
-      {/*       <div style={{ marginBottom: '20px' }}>
-        <label style={{ marginRight: '10px' }}>Ambiente:</label>
-        <select 
-          value={ambiente} 
-          onChange={(e) => setAmbiente(e.target.value)}
-          style={{ padding: '5px', borderRadius: '5px' }}
-        >
-          <option value="sandbox">Sandbox</option>
-         <option value="prod">Produção</option>
-        </select>
-      </div>
-      */}
+      {/* ... */}
 
       <h1 style={styles.title}>Cardápio</h1>
 
@@ -269,12 +343,12 @@ export default function Cardapio() {
 
       {/* Produtos */}
       <div style={styles.produtos}>
-        {produtos[categoriaAtiva].length === 0 ? (
+        {produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 0 ? (
           <p style={{ textAlign: "center" }}>
             Nenhum item nesta categoria ainda.
           </p>
         ) : (
-          produtos[categoriaAtiva].map((item) => (
+          produtos[categoriaAtiva] && produtos[categoriaAtiva].map((item) => (
             <div key={item.id} style={styles.card}>
               <img
                 src={item.img}
@@ -574,11 +648,29 @@ export default function Cardapio() {
                     />
                 </div>
             )}
+            
+            {/* Ponto 4: Histórico de transações */}
+            <div style={styles.section}>
+              <h3>Histórico de Transações</h3>
+              <ul>
+                {transacoes.length === 0 ? (
+                    <p>Nenhuma transação encontrada.</p>
+                ) : (
+                    transacoes.map(tx => (
+                      // Adaptei para mostrar campos comuns em transações, assumindo que há id, tipo, e createdAt
+                      <li key={tx.id}>
+                        {tx.tipo} - {new Date(tx.createdAt).toLocaleString()}
+                      </li>
+                    ))
+                )}
+              </ul>
+            </div>
+
           </div>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal (Mantido) */}
       {modalImg && (
         <div style={styles.modalOverlay} onClick={() => setModalImg(null)}>
           <div

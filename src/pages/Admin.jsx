@@ -56,6 +56,7 @@ export default function Admin() {
 
   // Se estiver logado → mostra painel admin
   const categorias = ["hamburgueres", "combos", "acompanhamentos", "bebidas"];
+  const outros = ["pedidos"];
 
   return (
     <div style={styles.adminContainer}>
@@ -76,6 +77,21 @@ export default function Admin() {
 
             <Link to={`/admin/${cat}`} style={styles.manageBtn}>
               Gerenciar
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      <h2 style={styles.sectionTitle}>Operações</h2>
+      <div style={styles.grid}>
+        {outros.map((item) => (
+          <div key={item} style={styles.card}>
+            <h3 style={styles.cardTitle}>
+              {item === "pedidos" ? "Pedidos" : item}
+            </h3>
+
+            <Link to={`/admin/${item}`} style={styles.manageBtn}>
+              Visualizar
             </Link>
           </div>
         ))}
@@ -145,6 +161,12 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "20px",
+  },
+  sectionTitle: {
+    marginTop: "40px",
+    fontSize: "24px",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   card: {
     backgroundColor: "#fff",

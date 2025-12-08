@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: metanoia-backend
+    runtime: node
+    startCommand: cd backend && npm install && npm run migrate:deploy && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: PAGBANK_TOKEN
+        sync: false
+      - key: PAGBANK_API_URL
+        value: https://api.pagseguro.com
+      - key: PORT
+        value: 10000

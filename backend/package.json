@@ -1,29 +1,23 @@
 {
   "name": "metanoia-app-backend",
   "version": "1.0.0",
-  "description": "Backend para sistema de cardápio digital com pagamentos PagBank",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "postinstall": "npx prisma generate"
+    "postinstall": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy"
   },
-  "keywords": [
-    "express",
-    "pagbank",
-    "api"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^7.1.0",
+    "@prisma/client": "^6.19.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",
-    "prisma": "^7.1.0"
+    "prisma": "^6.19.0",
+    "typescript": "^5.9.3"
   }
 }

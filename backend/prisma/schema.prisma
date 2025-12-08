@@ -5,16 +5,71 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url removido para Prisma 7
+  url      = env("DATABASE_URL")
 }
 
-// Model de Exemplo para o Cardápio
+model Categoria {
+  id        String         @id @default(uuid())
+  nome      String         @unique
+  itens     ItemCardapio[]
+  createdAt DateTime       @default(now())
+}
+
 model ItemCardapio {
-  id         String   @id @default(uuid())
-  nome       String
-  descricao  String
-  preco      Decimal
-  categoria  String
+  id          String       @id @default(uuid())
+  nome        String
+  descricao   String?
+  preco       Decimal      @db.Decimal(10, 2)
+  peso        Int?
+  img         String?
+  categoriaId String
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
+  createdAt   DateTime     @default(now())
+
+  pedidos     PedidoItem[]
 
   @@map("itens_cardapio")
+}
+
+model Pedido {
+  id              String           @id @default(uuid())
+  clienteNome     String?
+  clienteTelefone String?
+  status          PedidoStatus     @default(PENDENTE)
+  total           Decimal          @db.Decimal(10, 2)
+  itens           PedidoItem[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  transacao       TransacaoPagamento?
+}
+
+model PedidoItem {
+  id         String       @id @default(uuid())
+  pedidoId   String
+  itemId     String
+  quantidade Int
+  precoUnit  Decimal      @db.Decimal(10, 2)
+  observacao String?
+
+  pedido Pedido         @relation(fields: [pedidoId], references: [id])
+  item   ItemCardapio   @relation(fields: [itemId], references: [id])
+}
+
+model TransacaoPagamento {
+  id        String    @id @default(uuid())
+  pedidoId  String    @unique
+  tipo      String
+  dados     String
+  createdAt DateTime  @default(now())
+
+  pedido Pedido       @relation(fields: [pedidoId], references: [id])
+}
+
+enum PedidoStatus {
+  PENDENTE
+  PREPARANDO
+  PRONTO
+  ENTREGUE
+  CANCELADO
 }

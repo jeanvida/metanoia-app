@@ -7,6 +7,7 @@ import AdminHamburgueres from "./pages/admin/AdminHamburgueres.jsx";
 import AdminCombos from "./pages/admin/AdminCombos.jsx";
 import AdminAcompanhamentos from "./pages/admin/AdminAcompanhamentos.jsx";
 import AdminBebidas from "./pages/admin/AdminBebidas.jsx";
+import AdminPedidos from "./pages/admin/AdminPedidos.jsx";
 
 import logo from "/logo.png";
 
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/admin/combos" element={<AdminCombos />} />
         <Route path="/admin/acompanhamentos" element={<AdminAcompanhamentos />} />
         <Route path="/admin/bebidas" element={<AdminBebidas />} />
+        <Route path="/admin/pedidos" element={<AdminPedidos />} />
 
         {/* Layout padrão envolvendo Home e Cardápio */}
         <Route element={<Layout />}>
