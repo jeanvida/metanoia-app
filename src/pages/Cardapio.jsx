@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamentos";
 
 // 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 export default function Cardapio() {
   const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
@@ -529,6 +529,21 @@ export default function Cardapio() {
                 }
                 style={styles.input}
               />
+<input
+  type="email"
+  placeholder="Email"
+  value={cliente.email || ""}
+  onChange={(e) => setCliente({ ...cliente, email: e.target.value })}
+  style={styles.input}
+/>
+<input
+  type="text"
+  placeholder="CPF (somente números)"
+  value={cliente.cpf || ""}
+  onChange={(e) => setCliente({ ...cliente, cpf: e.target.value.replace(/\D/g, "") })}
+  style={styles.input}
+  maxLength="11"
+/>
               <input
                 type="tel"
                 placeholder="Telefone"
