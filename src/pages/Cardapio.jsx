@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 // 1. Importando as funções de serviço que se comunicarão com o backend
 import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamentos";
-import { getRecaptchaToken } from "../services/recaptcha";
+import { getRecaptchaToken, resetRecaptcha } from "../services/recaptcha";
 
 // 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
@@ -240,9 +240,9 @@ export default function Cardapio() {
     setPixData(null);
 
     // Obter token reCAPTCHA
-    const recaptchaToken = await getRecaptchaToken('pagamento_cartao');
+    const recaptchaToken = getRecaptchaToken();
     if (!recaptchaToken) {
-      setStatusPagamento("Erro: Falha na validação de segurança. Tente novamente.");
+      setStatusPagamento("Erro: Complete a verificação reCAPTCHA antes de continuar.");
       setLoadingPagamento(false);
       return;
     }
@@ -270,9 +270,11 @@ export default function Cardapio() {
       await criarPedidoBackend(statusPagBank); 
 
       setStatusPagamento(`Pagamento ${statusPagBank}! Transação ID: ${resultado.transacao.id}`);
+      resetRecaptcha();
     } catch (err) {
       console.error("Erro ao pagar com Cartão:", err);
       setStatusPagamento(`Falha: ${err.message}`);
+      resetRecaptcha();
     } finally {
       setLoadingPagamento(false);
     }
@@ -284,9 +286,9 @@ export default function Cardapio() {
     setPixData(null);
 
     // Obter token reCAPTCHA
-    const recaptchaToken = await getRecaptchaToken('pagamento_pix');
+    const recaptchaToken = getRecaptchaToken();
     if (!recaptchaToken) {
-      setStatusPagamento("Erro: Falha na validação de segurança. Tente novamente.");
+      setStatusPagamento("Erro: Complete a verificação reCAPTCHA antes de continuar.");
       setLoadingPagamento(false);
       return;
     }
@@ -316,11 +318,13 @@ export default function Cardapio() {
 
         setPixData(pixDataFormatado);
         setStatusPagamento("Cobrança PIX gerada com sucesso! Escaneie o QR Code.");
+        resetRecaptcha();
         
         await criarPedidoBackend('PENDENTE');
 
       } else {
         setStatusPagamento("Falha: Resposta de PIX inválida do PagBank.");
+        resetRecaptcha();
       }
     } catch (err) {
       console.error("Erro ao pagar com PIX:", err);
@@ -638,6 +642,14 @@ export default function Cardapio() {
                 }
                 style={styles.input}
               />
+
+              {/* reCAPTCHA v2 */}
+              {import.meta.env.VITE_RECAPTCHA_SITE_KEY && (
+                <div style={{ margin: '15px 0' }}>
+                  <div className="g-recaptcha" data-sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}></div>
+                </div>
+              )}
+
               <button 
                 style={styles.finalizarBtn} 
                 onClick={pagarCartao}
