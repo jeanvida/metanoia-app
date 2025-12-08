@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 // 1. Importando as funções de serviço que se comunicarão com o backend
 import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamentos";
+import { getRecaptchaToken } from "../services/recaptcha";
 
 // 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 export default function Cardapio() {
-  const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
-  const [categoriaAtiva, setCategoriaAtiva] = useState("Hamburgueres");
+  const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
+  const [categoriaAtiva, setCategoriaAtiva] = useState("Hamburgueres");
   const [modalImg, setModalImg] = useState(null);
 
   // ===== Checkout / Carrinho =====
@@ -233,47 +234,62 @@ export default function Cardapio() {
     setPixData(null); // Limpa os dados do PIX
   }
 
-  async function pagarCartao() {
-    setLoadingPagamento(true);
-    setStatusPagamento("Processando pagamento com cartão...");
-    setPixData(null);
+  async function pagarCartao() {
+    setLoadingPagamento(true);
+    setStatusPagamento("Validando segurança...");
+    setPixData(null);
 
-    const totalEmCentavos = Math.round((total + frete.valor) * 100);
+    // Obter token reCAPTCHA
+    const recaptchaToken = await getRecaptchaToken('pagamento_cartao');
+    if (!recaptchaToken) {
+      setStatusPagamento("Erro: Falha na validação de segurança. Tente novamente.");
+      setLoadingPagamento(false);
+      return;
+    }
 
-    const dadosParaBackend = {
-      cliente,
-      itens: carrinho,
-      total: totalEmCentavos,
-      cartao,
-      // REMOVIDO: ambiente,
-    };
+    const totalEmCentavos = Math.round((total + frete.valor) * 100);
 
-    if (cartao.numero.length < 16 || !cartao.cvv) {
-      setStatusPagamento("Erro: Dados do cartão incompletos.");
-      setLoadingPagamento(false);
-      return;
-    }
+    const dadosParaBackend = {
+      cliente,
+      total: totalEmCentavos,
+      cartao,
+      recaptchaToken,
+    };
 
-    try {
-      const resultado = await efetuarPagamentoCartao(dadosParaBackend);
-      const statusPagBank = resultado.transacao.status || "APROVADO";
-      
-      // Ponto 3: Criar pedido no backend APÓS o Pagamento
-      await criarPedidoBackend(statusPagBank); 
+    if (cartao.numero.length < 16 || !cartao.cvv) {
+      setStatusPagamento("Erro: Dados do cartão incompletos.");
+      setLoadingPagamento(false);
+      return;
+    }
 
-      setStatusPagamento(`Pagamento ${statusPagBank}! Transação ID: ${resultado.transacao.id}`);
-    } catch (err) {
-      console.error("Erro ao pagar com Cartão:", err);
-      setStatusPagamento(`Falha: ${err.message}`);
-    } finally {
-      setLoadingPagamento(false);
-    }
-  }
+    try {
+      setStatusPagamento("Processando pagamento com cartão...");
+      const resultado = await efetuarPagamentoCartao(dadosParaBackend);
+      const statusPagBank = resultado.transacao.status || "APROVADO";
+      
+      await criarPedidoBackend(statusPagBank); 
+
+      setStatusPagamento(`Pagamento ${statusPagBank}! Transação ID: ${resultado.transacao.id}`);
+    } catch (err) {
+      console.error("Erro ao pagar com Cartão:", err);
+      setStatusPagamento(`Falha: ${err.message}`);
+    } finally {
+      setLoadingPagamento(false);
+    }
+  }
 
   async function pagarPIX() {
     setLoadingPagamento(true);
-    setStatusPagamento("Gerando cobrança PIX...");
+    setStatusPagamento("Validando segurança...");
     setPixData(null);
+
+    // Obter token reCAPTCHA
+    const recaptchaToken = await getRecaptchaToken('pagamento_pix');
+    if (!recaptchaToken) {
+      setStatusPagamento("Erro: Falha na validação de segurança. Tente novamente.");
+      setLoadingPagamento(false);
+      return;
+    }
 
     const totalEmCentavos = Math.round((total + frete.valor) * 100);
 
@@ -281,9 +297,11 @@ export default function Cardapio() {
       cliente,
       valor: totalEmCentavos,
       descricao: `Pedido #WEB-${Date.now()}`,
+      recaptchaToken,
     };
 
     try {
+      setStatusPagamento("Gerando cobrança PIX...");
       const resultado = await efetuarPagamentoPix(dadosParaBackend);
       const transacao = resultado.transacao || resultado;
 
