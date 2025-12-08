@@ -270,53 +270,47 @@ export default function Cardapio() {
     }
   }
 
-  async function pagarPIX() {
-    setLoadingPagamento(true);
-    setStatusPagamento("Gerando cobrança PIX...");
-    setPixData(null);
+  async function pagarPIX() {
+    setLoadingPagamento(true);
+    setStatusPagamento("Gerando cobrança PIX...");
+    setPixData(null);
 
-    const totalEmCentavos = Math.round((total + frete.valor) * 100);
+    const totalEmCentavos = Math.round((total + frete.valor) * 100);
 
-    const dadosParaBackend = {
-      cliente,
-      itens: carrinho,
-      valor: totalEmCentavos,
-      descricao: `Pedido #WEB-${Date.now()}`,
-      // REMOVIDO: ambiente,
-    };
+    const dadosParaBackend = {
+      cliente,
+      valor: totalEmCentavos,
+      descricao: `Pedido #WEB-${Date.now()}`,
+    };
 
-    try {
-      const resultado = await efetuarPagamentoPix(dadosParaBackend);
-      const transacaoPagBank = resultado.transacao;
+    try {
+      const resultado = await efetuarPagamentoPix(dadosParaBackend);
+      const transacao = resultado.transacao || resultado;
 
-      if (transacaoPagBank && transacaoPagBank.qr_codes && transacaoPagBank.qr_codes.length > 0) {
-        const pixCode = transacaoPagBank.qr_codes[0];
-        const qrCodeLink = pixCode.links.find(link => link.rel === 'qrcode');
+      if (transacao && transacao.qr_codes && transacao.qr_codes.length > 0) {
+        const pixCode = transacao.qr_codes[0];
+        const qrCodeLink = pixCode.links.find(link => link.rel === 'qrcode');
 
-        const pixDataFormatado = {
-          qrCodeText: pixCode.text,
-          // A base64 do QR Code é o que o PagBank envia
-          qrCodeBase64: qrCodeLink.href.split(',')[1] 
-        };
+        const pixDataFormatado = {
+          qrCodeText: pixCode.text,
+          qrCodeBase64: qrCodeLink.href.split(',')[1] 
+        };
 
-        setPixData(pixDataFormatado);
-        setStatusPagamento("Cobrança PIX gerada com sucesso! Escaneie o QR Code.");
-        
-        // Ponto 3: Criar pedido no backend (com status PENDENTE)
-        await criarPedidoBackend('PENDENTE');
+        setPixData(pixDataFormatado);
+        setStatusPagamento("Cobrança PIX gerada com sucesso! Escaneie o QR Code.");
+        
+        await criarPedidoBackend('PENDENTE');
 
-      } else {
-        setStatusPagamento("Falha: Resposta de PIX inválida do PagBank.");
-      }
-    } catch (err) {
-      console.error("Erro ao pagar com PIX:", err);
-      setStatusPagamento(`Falha ao gerar PIX: ${err.message}`);
-    } finally {
-      setLoadingPagamento(false);
-    }
-  }
-
-  return (
+      } else {
+        setStatusPagamento("Falha: Resposta de PIX inválida do PagBank.");
+      }
+    } catch (err) {
+      console.error("Erro ao pagar com PIX:", err);
+      setStatusPagamento(`Falha ao gerar PIX: ${err.message}`);
+    } finally {
+      setLoadingPagamento(false);
+    }
+  }  return (
     <div style={styles.container}>
 
       {/* REMOVIDO: Seletor de Ambiente */}
