@@ -8,6 +8,14 @@ if (process.env.NODE_ENV !== "production") {
   dotenv.config({ path: path.resolve(__dirname, ".env") });
 }
 
+// Debug: log para verificar se DATABASE_URL está sendo carregada
+console.log("🔍 NODE_ENV:", process.env.NODE_ENV);
+console.log("🔍 DATABASE_URL presente:", !!process.env.DATABASE_URL);
+if (process.env.DATABASE_URL) {
+  const masked = process.env.DATABASE_URL.replace(/:[^@]*@/, ":***@");
+  console.log("🔍 DATABASE_URL:", masked);
+}
+
 // Prisma Client (usando o client gerado em ./generated/prisma)
 const { PrismaClient } = require("./generated/prisma");
 
