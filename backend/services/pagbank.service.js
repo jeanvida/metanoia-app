@@ -93,8 +93,14 @@ exports.processarTransacaoCartao = async (dados) => {
         const { cliente, total, cartao } = dados;
         if (!cliente || !total || !cartao) throw new Error("Dados incompletos para cartão");
 
+        // Validações robustas
+        if (!cartao.validade) throw new Error("Validade do cartão é obrigatória");
+        if (!cartao.numero) throw new Error("Número do cartão é obrigatório");
+        if (!cartao.cvv) throw new Error("CVV é obrigatório");
+        if (!cartao.nome) throw new Error("Nome do titular é obrigatório");
+
         let [exp_month, exp_year] = (cartao.validade || "01/30").split("/");
-        if (exp_year.length === 2) exp_year = "20" + exp_year;
+        if (exp_year && exp_year.length === 2) exp_year = "20" + exp_year;
 
         const body = {
             reference_id: `CARTAO-${Date.now()}`,
