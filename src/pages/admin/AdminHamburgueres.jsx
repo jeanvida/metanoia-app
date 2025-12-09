@@ -40,10 +40,22 @@ export default function AdminHamburgueres() {
     const inicializar = async () => {
       try {
         // Inicializar categorias
-        await fetch(`${API_URL}/api/init-categorias`, { method: "POST" });
+        const initRes = await fetch(`${API_URL}/api/init-categorias`, { method: "POST" });
+        console.log("Init categorias response:", initRes.status, initRes.statusText);
+        
+        if (!initRes.ok) {
+          const text = await initRes.text();
+          console.error("Init categorias error:", text);
+        }
 
         // Buscar ID da categoria Hamburgueres
         const catResponse = await fetch(`${API_URL}/api/categorias`);
+        console.log("Categorias response:", catResponse.status);
+        
+        if (!catResponse.ok) {
+          throw new Error(`Erro ao buscar categorias: ${catResponse.status}`);
+        }
+        
         const categorias = await catResponse.json();
         const hamburguesCategoria = categorias.find((c) => c.nome === "Hamburgueres");
         if (hamburguesCategoria) {
@@ -115,6 +127,7 @@ export default function AdminHamburgueres() {
     // Enviar para o backend
     const enviarBackend = async () => {
       try {
+        console.log("🚀 Enviando para:", `${API_URL}/api/itens`);
         const response = await fetch(`${API_URL}/api/itens`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -127,6 +140,10 @@ export default function AdminHamburgueres() {
             categoriaId: categoriaId || 1,
           }),
         });
+
+        console.log("Response status:", response.status);
+        const responseText = await response.text();
+        console.log("Response body:", responseText);
 
         if (response.ok) {
           alert("Hambúrguer cadastrado com sucesso!");
@@ -141,12 +158,16 @@ export default function AdminHamburgueres() {
           });
           setNovoIngrediente({ nome: "", peso: "", custo: "" });
         } else {
-          const errorData = await response.json();
-          alert(`Erro ao cadastrar: ${errorData.error || "Tente novamente"}`);
+          try {
+            const errorData = JSON.parse(responseText);
+            alert(`Erro ao cadastrar: ${errorData.error || "Erro desconhecido"}`);
+          } catch {
+            alert(`Erro ao cadastrar (${response.status}): ${responseText.substring(0, 100)}`);
+          }
         }
       } catch (error) {
         console.error("Erro ao enviar para backend:", error);
-        alert(`Erro ao conectar com o servidor: ${error.message}`);
+        alert(`Erro ao conectar: ${error.message}`);
       }
     };
 
