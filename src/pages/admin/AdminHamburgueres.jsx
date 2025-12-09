@@ -235,15 +235,16 @@ const styles = {
   container: {
     background: "#F1B100",
     minHeight: "100vh",
-    padding: 20,
+    padding: "60px 20px 20px 20px",
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
     textAlign: "center",
+    marginBottom: "20px",
   },
   subtitle: {
-    marginTop: 20,
+    marginTop: 50,
     fontWeight: "700",
   },
   card: {
@@ -251,6 +252,7 @@ const styles = {
     padding: 18,
     borderRadius: 12,
     marginBottom: 24,
+    marginTop: "30px",
     border: "2px solid #000",
   },
   input: {

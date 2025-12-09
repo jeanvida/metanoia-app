@@ -109,12 +109,13 @@ const styles = {
   container: {
     background: "#F1B100",
     minHeight: "100vh",
-    padding: "20px",
+    padding: "60px 20px 20px 20px",
   },
   title: {
     fontSize: "32px",
     fontWeight: "bold",
     textAlign: "center",
+    marginBottom: "20px",
   },
   subtitle: {
     marginTop: "50px",
@@ -125,6 +126,7 @@ const styles = {
     padding: "20px",
     borderRadius: "12px",
     marginBottom: "30px",
+    marginTop: "30px",
   },
   itemCard: {
     background: "#fff",

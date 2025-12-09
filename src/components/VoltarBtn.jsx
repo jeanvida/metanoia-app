@@ -22,15 +22,17 @@ export default function VoltarBtn() {
       onClick={voltar}
       style={{
         position: "absolute",
-        right: "20px",
-        top: "20px",
+        right: "15px",
+        top: "15px",
         background: "#000",
         color: "#fff",
-        padding: "10px 14px",
-        borderRadius: "10px",
+        padding: "4px 8px",
+        borderRadius: "4px",
         border: "none",
         cursor: "pointer",
-        fontWeight: "bold"
+        fontWeight: "bold",
+        fontSize: "11px",
+        zIndex: 5
       }}
     >
       Voltar
