@@ -4,7 +4,10 @@ import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamen
 import { getRecaptchaToken, resetRecaptcha, SITE_KEY } from "../services/recaptcha";
 
 // 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_URL = import.meta.env.VITE_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? "http://localhost:3001/api" 
+    : "https://metanoia-app.onrender.com/api");
 
 export default function Cardapio() {
   const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
