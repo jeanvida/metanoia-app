@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 // 1. Importando as fun  es de servi o que se comunicar o com o backend
 import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamentos";
 import { getRecaptchaToken, resetRecaptcha, SITE_KEY } from "../services/recaptcha";
@@ -29,26 +29,21 @@ export default function Cardapio() {
   const [statusPagamento, setStatusPagamento] = useState("");
   const [loadingPagamento, setLoadingPagamento] = useState(false);
   const [pixData, setPixData] = useState(null);
+  const [mostrarFormCartao, setMostrarFormCartao] = useState(false);
   
   // Ponto 4: Hist rico de transa  es
   const [transacoes, setTransacoes] = useState([]);
+  
+  // Ref para o container do reCAPTCHA
+  const recaptchaRef = useRef(null);
 
   // ===== Produtos =====
-  // Mantemos o estado inicial vazio/fixo, mas a l gica de carregamento ser  alterada no useEffect
+  // Produtos vêm 100% da API
   const produtosFixos = {
     Hamburgueres: [],
-    Combos: [
-      { id: 1, nome: "Combo Smash Simples", preco: 32, img: "combo.png" },
-      { id: 2, nome: "Combo Duplo", preco: 37, img: "combo.png" },
-    ],
-    Acompanhamentos: [
-      { id: 3, nome: "Fritas", preco: 12, img: "fritas.png" },
-      { id: 4, nome: "Fritas Grande", preco: 18, img: "fritas.png" },
-    ],
-    Bebidas: [
-      { id: 5, nome: "Coca-Cola", preco: 6, img: "coca.png" },
-      { id: 6, nome: " gua", preco: 4, img: "coca.png" },
-    ],
+    Combos: [],
+    Acompanhamentos: [],
+    Bebidas: [],
   };
   const [produtos, setProdutos] = useState(produtosFixos);
 
@@ -82,7 +77,7 @@ export default function Cardapio() {
         setProdutos(itensAgrupados);
 
       } catch (error) {
-        console.error("Erro ao carregar card pio da API:", error);
+        console.error("Erro ao carregar cardápio da API:", error);
         // Mant m o fallback de localStorage (anteriormente apenas para Hamburgueres), mas agora vazio para seguir a instru  o.
         // O c digo original que carregava do localStorage (para Hamburgueres) foi removido daqui:
         /*
@@ -98,17 +93,30 @@ export default function Cardapio() {
     const carregarTransacoes = async () => {
         try {
             const response = await fetch(`${API_URL}/api/transacoes`);
-            if (!response.ok) throw new Error('Falha ao buscar hist rico de transa  es');
+            if (!response.ok) throw new Error('Falha ao buscar histórico de transações');
             const txs = await response.json();
             setTransacoes(txs);
         } catch (error) {
-            console.error("Erro ao carregar transa  es:", error);
+            console.error("Erro ao carregar transações:", error);
         }
     };
 
     carregarItens();
     carregarTransacoes();
   }, []); // Executa apenas na montagem
+
+  // Renderizar reCAPTCHA quando a aba de pagamento for aberta ou quando abrir o formulário de cartão
+  useEffect(() => {
+    if (abaAtiva === "pagamento" && SITE_KEY && recaptchaRef.current && mostrarFormCartao && !recaptchaRef.current.hasChildNodes()) {
+      try {
+        window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: SITE_KEY,
+        });
+      } catch (error) {
+        console.error("Erro ao renderizar reCAPTCHA:", error);
+      }
+    }
+  }, [abaAtiva, mostrarFormCartao]);
 
   // ===== Carrinho (L gica de localStorage mantida) =====
   const [carrinho, setCarrinho] = useState([]);
@@ -236,13 +244,13 @@ export default function Cardapio() {
 
   async function pagarCartao() {
     setLoadingPagamento(true);
-    setStatusPagamento("Validando seguran a...");
+    setStatusPagamento("Validando segurança...");
     setPixData(null);
 
     // Obter token reCAPTCHA
     const recaptchaToken = getRecaptchaToken();
     if (!recaptchaToken) {
-      setStatusPagamento("Erro: Complete a verifica  o reCAPTCHA antes de continuar.");
+      setStatusPagamento("Erro: Complete a verificação do reCAPTCHA antes de continuar.");
       setLoadingPagamento(false);
       return;
     }
@@ -257,22 +265,22 @@ export default function Cardapio() {
     };
 
     if (cartao.numero.length < 16 || !cartao.cvv) {
-      setStatusPagamento("Erro: Dados do cart o incompletos.");
+      setStatusPagamento("Erro: Dados do cartão incompletos.");
       setLoadingPagamento(false);
       return;
     }
 
     try {
-      setStatusPagamento("Processando pagamento com cart o...");
+      setStatusPagamento("Processando pagamento com cartão...");
       const resultado = await efetuarPagamentoCartao(dadosParaBackend);
       const statusPagBank = resultado.transacao.status || "APROVADO";
       
       await criarPedidoBackend(statusPagBank); 
 
-      setStatusPagamento(`Pagamento ${statusPagBank}! Transa  o ID: ${resultado.transacao.id}`);
+      setStatusPagamento(`Pagamento ${statusPagBank}! Transação ID: ${resultado.transacao.id}`);
       resetRecaptcha();
     } catch (err) {
-      console.error("Erro ao pagar com Cart o:", err);
+      console.error("Erro ao pagar com cartão:", err);
       setStatusPagamento(`Falha: ${err.message}`);
       resetRecaptcha();
     } finally {
@@ -282,13 +290,13 @@ export default function Cardapio() {
 
   async function pagarPIX() {
     setLoadingPagamento(true);
-    setStatusPagamento("Validando seguran a...");
+    setStatusPagamento("Validando segurança...");
     setPixData(null);
 
     // Obter token reCAPTCHA
     const recaptchaToken = getRecaptchaToken();
     if (!recaptchaToken) {
-      setStatusPagamento("Erro: Complete a verifica  o reCAPTCHA antes de continuar.");
+      setStatusPagamento("Erro: Complete a verificação do reCAPTCHA antes de continuar.");
       setLoadingPagamento(false);
       return;
     }
@@ -303,7 +311,7 @@ export default function Cardapio() {
     };
 
     try {
-      setStatusPagamento("Gerando cobran a PIX...");
+      setStatusPagamento("Gerando cobrança PIX...");
       const resultado = await efetuarPagamentoPix(dadosParaBackend);
       const transacao = resultado.transacao || resultado;
 
@@ -317,13 +325,13 @@ export default function Cardapio() {
         };
 
         setPixData(pixDataFormatado);
-        setStatusPagamento("Cobran a PIX gerada com sucesso! Escaneie o QR Code.");
+        setStatusPagamento("Cobrança PIX gerada com sucesso! Escaneie o QR Code.");
         resetRecaptcha();
         
         await criarPedidoBackend('PENDENTE');
 
       } else {
-        setStatusPagamento("Falha: Resposta de PIX inv lida do PagBank.");
+        setStatusPagamento("Falha: Resposta de PIX inválida do PagBank.");
         resetRecaptcha();
       }
     } catch (err) {
@@ -338,7 +346,23 @@ export default function Cardapio() {
       {/* REMOVIDO: Seletor de Ambiente */}
       {/* ... */}
 
-      <h1 style={styles.title}>Card pio</h1>
+      {/* Ícone do Carrinho */}
+      <button
+        onClick={() => {
+          setDrawerAberto(true);
+          setAbaAtiva("carrinho");
+        }}
+        style={styles.carrinhoIconBtn}
+      >
+        <img src="/cart.png" alt="Carrinho" style={{ width: '30px', height: '30px' }} />
+        {carrinho.length > 0 && (
+          <span style={{ fontSize: '12px', marginLeft: '5px' }}>
+            ({carrinho.reduce((acc, item) => acc + item.quantidade, 0)})
+          </span>
+        )}
+      </button>
+
+      <h1 style={styles.title}>Cardápio</h1>
 
       {/* Tabs */}
       <div style={styles.tabs}>
@@ -395,6 +419,18 @@ export default function Cardapio() {
           transform: drawerAberto ? "translateX(0)" : "translateX(100%)",
         }}
       >
+        {/* Botão Fechar */}
+        <button
+          onClick={() => setDrawerAberto(false)}
+          style={{
+            ...styles.fecharDrawerBtn,
+            opacity: drawerAberto ? 1 : 0,
+            transition: "opacity 0.3s ease"
+          }}
+        >
+          ▶
+        </button>
+        
         {/* Abas */}
         <div style={styles.abaContainer}>
           <button
@@ -433,7 +469,7 @@ export default function Cardapio() {
           <>
             <h2>Carrinho</h2>
             {carrinho.length === 0 ? (
-              <p>O carrinho est  vazio.</p>
+              <p>O carrinho está vazio.</p>
             ) : (
               <>
                 {carrinho.map((item) => (
@@ -455,7 +491,7 @@ export default function Cardapio() {
                       onClick={() => removerDoCarrinho(item.id)}
                       style={styles.removerBtn}
                     >
-                      ?
+                      x
                     </button>
                   </div>
                 ))}
@@ -475,7 +511,7 @@ export default function Cardapio() {
           <div style={styles.checkout}>
             <h2>Checkout</h2>
             <div style={styles.section}>
-              <h3>Endere o</h3>
+              <h3>Endereço</h3>
               <input
                 type="text"
                 placeholder="CEP"
@@ -494,7 +530,7 @@ export default function Cardapio() {
               />
               <input
                 type="text"
-                placeholder="N mero"
+                placeholder="Número"
                 value={cliente.numero || ""}
                 onChange={(e) =>
                   setCliente({ ...cliente, numero: e.target.value })
@@ -554,7 +590,7 @@ export default function Cardapio() {
 />
 <input
   type="text"
-  placeholder="CPF (somente n meros)"
+  placeholder="CPF (somente números)"
   value={cliente.cpf || ""}
   onChange={(e) => setCliente({ ...cliente, cpf: e.target.value.replace(/\D/g, "") })}
   style={styles.input}
@@ -605,58 +641,69 @@ export default function Cardapio() {
             </p>
 
             <div style={styles.section}>
-              <h3>Cart o de Cr dito</h3>
-              <input
-                type="text"
-                placeholder="N mero do cart o"
-                value={cartao.numero || ""}
-                onChange={(e) =>
-                  setCartao({ ...cartao, numero: e.target.value })
-                }
-                style={styles.input}
-              />
-              <input
-                type="text"
-                placeholder="Nome no cart o"
-                value={cartao.nome || ""}
-                onChange={(e) =>
-                  setCartao({ ...cartao, nome: e.target.value })
-                }
-                style={styles.input}
-              />
-              <input
-                type="text"
-                placeholder="MM/AA"
-                value={cartao.validade || ""}
-                onChange={(e) =>
-                  setCartao({ ...cartao, validade: e.target.value })
-                }
-                style={styles.input}
-              />
-              <input
-                type="text"
-                placeholder="CVV"
-                value={cartao.cvv || ""}
-                onChange={(e) =>
-                  setCartao({ ...cartao, cvv: e.target.value })
-                }
-                style={styles.input}
-              />
+              <h3>Cartão de Crédito</h3>
+              
+              {!mostrarFormCartao ? (
+                <button 
+                  style={styles.finalizarBtn} 
+                  onClick={() => setMostrarFormCartao(true)}
+                >
+                  Pagar com Cartão
+                </button>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Número do cartão"
+                    value={cartao.numero || ""}
+                    onChange={(e) =>
+                      setCartao({ ...cartao, numero: e.target.value })
+                    }
+                    style={styles.input}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nome no cartão"
+                    value={cartao.nome || ""}
+                    onChange={(e) =>
+                      setCartao({ ...cartao, nome: e.target.value })
+                    }
+                    style={styles.input}
+                  />
+                  <input
+                    type="text"
+                    placeholder="MM/AA"
+                    value={cartao.validade || ""}
+                    onChange={(e) =>
+                      setCartao({ ...cartao, validade: e.target.value })
+                    }
+                    style={styles.input}
+                  />
+                  <input
+                    type="text"
+                    placeholder="CVV"
+                    value={cartao.cvv || ""}
+                    onChange={(e) =>
+                      setCartao({ ...cartao, cvv: e.target.value })
+                    }
+                    style={styles.input}
+                  />
 
-              {/* reCAPTCHA v2 */}
-              {SITE_KEY && (
-                <div style={{ margin: '15px 0' }}>
-                  <div className="g-recaptcha" data-sitekey={SITE_KEY}></div>
-                </div>
+                  <button 
+                    style={styles.finalizarBtn} 
+                    onClick={pagarCartao}
+                    disabled={loadingPagamento}
+                  >
+                    Confirmar Pagamento
+                  </button>
+                  <button 
+                    style={{ ...styles.finalizarBtn, backgroundColor: '#666', marginTop: '10px' }} 
+                    onClick={() => setMostrarFormCartao(false)}
+                  >
+                    Cancelar
+                  </button>
+                </>
               )}
-
-              <button 
-                style={styles.finalizarBtn} 
-                onClick={pagarCartao}
-                disabled={loadingPagamento} // Desabilita durante o processamento
-              >
-                Pagar com Cart o
-              </button>
             </div>
             <div style={styles.section}>
               <h3>PIX</h3>
@@ -669,7 +716,16 @@ export default function Cardapio() {
               </button>
             </div>
 
-            {/* Exibi  o do QR Code do PIX (se gerado) */}
+            {/* reCAPTCHA v2 - Central para ambas as opcoes */}
+            {mostrarFormCartao && SITE_KEY && (
+              <div style={styles.section}>
+                <div style={{ margin: '15px 0' }}>
+                  <div ref={recaptchaRef}></div>
+                </div>
+              </div>
+            )}
+
+            {/* Exibicao do QR Code do PIX (se gerado) */}
             {pixData && pixData.qrCodeBase64 && (
                 <div style={styles.section}>
                     <h4>Escaneie para Pagar</h4>
@@ -678,7 +734,7 @@ export default function Cardapio() {
                         alt="QR Code PIX" 
                         style={{ width: '100%', maxWidth: '250px', margin: '10px auto', display: 'block' }}
                     />
-                    <p>Ou use o c digo Pix Copia e Cola:</p>
+                    <p>Ou use o código Pix Copia e Cola:</p>
                     <input 
                         type="text" 
                         value={pixData.qrCodeText} 
@@ -688,23 +744,6 @@ export default function Cardapio() {
                 </div>
             )}
             
-            {/* Ponto 4: Hist rico de transa  es */}
-            <div style={styles.section}>
-              <h3>Hist rico de Transa  es</h3>
-              <ul>
-                {transacoes.length === 0 ? (
-                    <p>Nenhuma transa  o encontrada.</p>
-                ) : (
-                    transacoes.map(tx => (
-                      // Adaptei para mostrar campos comuns em transa  es, assumindo que h  id, tipo, e createdAt
-                      <li key={tx.id}>
-                        {tx.tipo} - {new Date(tx.createdAt).toLocaleString()}
-                      </li>
-                    ))
-                )}
-              </ul>
-            </div>
-
           </div>
         )}
       </div>
@@ -734,6 +773,8 @@ export default function Cardapio() {
 const styles = {
 // ... (Mantenha seus estilos originais aqui)
   container: { padding: "20px", position: "relative" },
+  carrinhoIconBtn: { position: "fixed", top: "20px", right: "20px", backgroundColor: "#000", color: "#F1B100", border: "2px solid #000", borderRadius: "50%", width: "60px", height: "60px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 999, fontWeight: "bold" },
+  fecharDrawerBtn: { position: "absolute", top: "50%", left: "-32px", transform: "translateY(-50%)", backgroundColor: "#000", color: "#F1B100", border: "2px solid #000", borderRadius: "8px 0 0 8px", width: "32px", height: "32px", fontSize: "14px", cursor: "pointer", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1001, lineHeight: "1" },
   title: { fontSize: "32px", fontWeight: "bold", color: "#000", marginBottom: "20px" },
   tabs: { display: "flex", gap: "10px", justifyContent: "center", marginBottom: "25px", flexWrap: "wrap" },
   tabButton: { padding: "10px 18px", borderRadius: "10px", border: "2px solid #000", backgroundColor: "#fff", color: "#000", fontWeight: "bold", cursor: "pointer", fontSize: "16px" },
@@ -745,7 +786,7 @@ const styles = {
   descricao: { marginTop: "5px", fontSize: "16px", color: "#333" },
   preco: { marginTop: "5px", fontSize: "18px", color: "#000" },
   addBtn: { marginTop: "10px", padding: "10px 20px", backgroundColor: "#000", color: "#F1B100", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" },
-  drawer: { position: "fixed", top: 0, right: 0, width: "100%", maxWidth: "400px", height: "100vh", backgroundColor: "#fff", borderLeft: "2px solid #000", padding: "10px 20px", boxShadow: "-4px 0 10px rgba(0,0,0,0.2)", zIndex: 1000, display: "flex", flexDirection: "column", transition: "transform 0.3s ease", overflowY: "auto" },
+  drawer: { position: "fixed", top: 0, right: 0, width: "100%", maxWidth: "400px", height: "100vh", backgroundColor: "#fff", borderLeft: "2px solid #000", padding: "10px 20px", boxShadow: "-4px 0 10px rgba(0,0,0,0.2)", zIndex: 1000, display: "flex", flexDirection: "column", transition: "transform 0.3s ease", overflowY: "auto", overflow: "visible" },
   abaContainer: { display: "flex", gap: "5px", marginBottom: "15px" },
   abaBtn: { flex: 1, padding: "8px 0", fontWeight: "bold", cursor: "pointer", borderRadius: "6px", border: "1px solid #000", backgroundColor: "#fff" },
   abaAtiva: { backgroundColor: "#000", color: "#F1B100" },
