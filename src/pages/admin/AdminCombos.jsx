@@ -4,8 +4,8 @@ import VoltarBtn from "../../components/VoltarBtn";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? "http://localhost:3001/api" 
-    : "https://metanoia-app.onrender.com/api");
+    ? "http://localhost:3001" 
+    : "https://metanoia-app.onrender.com");
 
 export default function AdminCombos() {
   const navigate = useNavigate();
@@ -36,13 +36,13 @@ export default function AdminCombos() {
   useEffect(() => {
     const inicializar = async () => {
       try {
-        await fetch(`${API_URL}/init-categorias`, { method: "POST" });
-        const catResponse = await fetch(`${API_URL}/categorias`);
+        await fetch(`${API_URL}/api/init-categorias`, { method: "POST" });
+        const catResponse = await fetch(`${API_URL}/api/categorias`);
         const categorias = await catResponse.json();
         const comboCategoria = categorias.find((c) => c.nome === "Combos");
         if (comboCategoria) setCategoriaId(comboCategoria.id);
 
-        const response = await fetch(`${API_URL}/itens?categoria=Combos`);
+        const response = await fetch(`${API_URL}/api/itens?categoria=Combos`);
         if (response.ok) {
           const data = await response.json();
           setCombos(data);
@@ -73,7 +73,7 @@ export default function AdminCombos() {
 
     const enviarBackend = async () => {
       try {
-        const response = await fetch(`${API_URL}/itens`, {
+        const response = await fetch(`${API_URL}/api/itens`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

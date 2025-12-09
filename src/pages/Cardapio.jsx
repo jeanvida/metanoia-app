@@ -6,8 +6,8 @@ import { getRecaptchaToken, resetRecaptcha, SITE_KEY } from "../services/recaptc
 // 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? "http://localhost:3001/api" 
-    : "https://metanoia-app.onrender.com/api");
+    ? "http://localhost:3001" 
+    : "https://metanoia-app.onrender.com");
 
 export default function Cardapio() {
   const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];

@@ -4,8 +4,8 @@ import VoltarBtn from "../../components/VoltarBtn";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? "http://localhost:3001/api" 
-    : "https://metanoia-app.onrender.com/api");
+    ? "http://localhost:3001" 
+    : "https://metanoia-app.onrender.com");
 
 export default function AdminHamburgueres() {
   const navigate = useNavigate();
@@ -40,10 +40,10 @@ export default function AdminHamburgueres() {
     const inicializar = async () => {
       try {
         // Inicializar categorias
-        await fetch(`${API_URL}/init-categorias`, { method: "POST" });
+        await fetch(`${API_URL}/api/init-categorias`, { method: "POST" });
 
         // Buscar ID da categoria Hamburgueres
-        const catResponse = await fetch(`${API_URL}/categorias`);
+        const catResponse = await fetch(`${API_URL}/api/categorias`);
         const categorias = await catResponse.json();
         const hamburguesCategoria = categorias.find((c) => c.nome === "Hamburgueres");
         if (hamburguesCategoria) {
@@ -51,7 +51,7 @@ export default function AdminHamburgueres() {
         }
 
         // Carregar hambúrgueres
-        const response = await fetch(`${API_URL}/itens?categoria=Hamburgueres`);
+        const response = await fetch(`${API_URL}/api/itens?categoria=Hamburgueres`);
         if (response.ok) {
           const data = await response.json();
           setHamburgueres(data);
@@ -115,7 +115,7 @@ export default function AdminHamburgueres() {
     // Enviar para o backend
     const enviarBackend = async () => {
       try {
-        const response = await fetch(`${API_URL}/itens`, {
+        const response = await fetch(`${API_URL}/api/itens`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

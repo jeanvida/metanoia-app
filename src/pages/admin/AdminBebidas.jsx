@@ -4,8 +4,8 @@ import VoltarBtn from "../../components/VoltarBtn";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? "http://localhost:3001/api" 
-    : "https://metanoia-app.onrender.com/api");
+    ? "http://localhost:3001" 
+    : "https://metanoia-app.onrender.com");
 
 export default function AdminBebidas() {
   const navigate = useNavigate();
@@ -30,13 +30,13 @@ export default function AdminBebidas() {
   useEffect(() => {
     const inicializar = async () => {
       try {
-        await fetch(`${API_URL}/init-categorias`, { method: "POST" });
-        const catResponse = await fetch(`${API_URL}/categorias`);
+        await fetch(`${API_URL}/api/init-categorias`, { method: "POST" });
+        const catResponse = await fetch(`${API_URL}/api/categorias`);
         const categorias = await catResponse.json();
         const bebidaCategoria = categorias.find((c) => c.nome === "Bebidas");
         if (bebidaCategoria) setCategoriaId(bebidaCategoria.id);
 
-        const response = await fetch(`${API_URL}/itens?categoria=Bebidas`);
+        const response = await fetch(`${API_URL}/api/itens?categoria=Bebidas`);
         if (response.ok) {
           const data = await response.json();
           setBebidas(data);
@@ -56,7 +56,7 @@ export default function AdminBebidas() {
 
     const enviarBackend = async () => {
       try {
-        const response = await fetch(`${API_URL}/itens`, {
+        const response = await fetch(`${API_URL}/api/itens`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
