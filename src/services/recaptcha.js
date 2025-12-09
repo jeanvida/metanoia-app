@@ -1,10 +1,10 @@
 // src/services/recaptcha.js
 
-const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeVmCUsAAAAAM4lZhsVEJJdpJkgub9y6xpd-0Cb';
+export const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeVmCUsAAAAAM4lZhsVEJJdpJkgub9y6xpd-0Cb';
 
 export function getRecaptchaToken() {
   if (!SITE_KEY) {
-    console.warn('reCAPTCHA Site Key não configurada');
+    console.warn('reCAPTCHA Site Key n o configurada');
     return null;
   }
 
@@ -12,7 +12,7 @@ export function getRecaptchaToken() {
     // Para reCAPTCHA v2, retorna o token do valor do widget
     const token = window.grecaptcha.getResponse();
     if (!token) {
-      console.warn('reCAPTCHA não foi completado pelo usuário');
+      console.warn('reCAPTCHA n o foi completado pelo usu rio');
       return null;
     }
     return token;
@@ -29,3 +29,4 @@ export function resetRecaptcha() {
     console.error('Erro ao resetar reCAPTCHA:', error);
   }
 }
+
