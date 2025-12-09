@@ -117,7 +117,7 @@ const styles = {
     textAlign: "center",
   },
   subtitle: {
-    marginTop: "20px",
+    marginTop: "50px",
     fontWeight: "bold",
   },
   card: {
