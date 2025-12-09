@@ -135,7 +135,7 @@ export default function AdminHamburgueres() {
             nome: form.nome,
             descricao: form.descricao,
             preco: Number(form.preco),
-            peso: form.peso,
+            peso: form.peso ? parseInt(form.peso, 10) : null,
             // img: form.foto || "", // Remover base64 muito grande - usar URL depois
             categoriaId: categoriaId || 1,
           }),
