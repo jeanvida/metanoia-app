@@ -138,11 +138,12 @@ export default function AdminHamburgueres() {
           });
           setNovoIngrediente({ nome: "", peso: "", custo: "" });
         } else {
-          alert("Erro ao cadastrar. Tente novamente.");
+          const errorData = await response.json();
+          alert(`Erro ao cadastrar: ${errorData.error || "Tente novamente"}`);
         }
       } catch (error) {
         console.error("Erro ao enviar para backend:", error);
-        alert("Erro ao conectar com o servidor");
+        alert(`Erro ao conectar com o servidor: ${error.message}`);
       }
     };
 

@@ -93,11 +93,12 @@ export default function AdminCombos() {
             foto: "",
           });
         } else {
-          alert("Erro ao cadastrar.");
+          const errorData = await response.json();
+          alert(`Erro ao cadastrar: ${errorData.error || "Tente novamente"}`);
         }
       } catch (error) {
         console.error("Erro:", error);
-        alert("Erro ao conectar com o servidor");
+        alert(`Erro ao conectar com o servidor: ${error.message}`);
       }
     };
 

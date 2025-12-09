@@ -91,15 +91,20 @@ app.post("/api/init-categorias", async (req, res) => {
     const criadas = [];
     
     for (const nome of categoriasPadrao) {
-      const existe = await prisma.categoria.findUnique({ where: { nome } });
-      if (!existe) {
-        const cat = await prisma.categoria.create({ data: { nome } });
-        criadas.push(cat);
+      try {
+        const existe = await prisma.categoria.findUnique({ where: { nome } });
+        if (!existe) {
+          const cat = await prisma.categoria.create({ data: { nome } });
+          criadas.push(cat);
+        }
+      } catch (catError) {
+        console.error(`Erro ao processar categoria ${nome}:`, catError.message);
       }
     }
     
     res.json({ message: "Categorias inicializadas", criadas });
   } catch (error) {
+    console.error("Erro em init-categorias:", error.message);
     res.status(400).json({ error: error.message });
   }
 });
@@ -108,6 +113,8 @@ app.post("/api/init-categorias", async (req, res) => {
 app.post("/api/itens", async (req, res) => {
   const { nome, descricao, preco, peso, img, categoriaId } = req.body;
   try {
+    console.log("📝 Criando item:", { nome, preco, categoriaId });
+    
     // 💡 Ajuste: Usa parseFloat para garantir que o 'preco' seja um número 
     // com ponto flutuante antes de ser enviado ao Decimal do Prisma.
     const item = await prisma.itemCardapio.create({
@@ -119,9 +126,12 @@ app.post("/api/itens", async (req, res) => {
         img, 
         categoriaId 
       },
+      include: { categoria: true }
     });
+    console.log("✅ Item criado com sucesso:", item.id);
     res.json(item);
   } catch (e) {
+    console.error("❌ Erro ao criar item:", e.message);
     res.status(400).json({ error: e.message });
   }
 });
