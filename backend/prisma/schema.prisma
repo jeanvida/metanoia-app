@@ -11,8 +11,8 @@ datasource db {
 model Categoria {
   id        String         @id @default(uuid())
   nome      String         @unique
-  itens     ItemCardapio[]
   createdAt DateTime       @default(now())
+  itens     ItemCardapio[]
 }
 
 model ItemCardapio {
@@ -20,28 +20,25 @@ model ItemCardapio {
   nome        String
   descricao   String?
   preco       Decimal      @db.Decimal(10, 2)
-  peso        Int?
-  img         String?
   categoriaId String
-  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
   createdAt   DateTime     @default(now())
-
+  img         String?
+  peso        Int?
   pedidos     PedidoItem[]
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
 
   @@map("itens_cardapio")
 }
 
 model Pedido {
-  id              String           @id @default(uuid())
+  id              String       @id @default(uuid())
   clienteNome     String?
   clienteTelefone String?
-  status          PedidoStatus     @default(PENDENTE)
-  total           Decimal          @db.Decimal(10, 2)
+  status          PedidoStatus @default(PENDENTE)
+  total           Decimal      @db.Decimal(10, 2)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
   itens           PedidoItem[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-
-  transacao       TransacaoPagamento?
 }
 
 model PedidoItem {
@@ -51,19 +48,15 @@ model PedidoItem {
   quantidade Int
   precoUnit  Decimal      @db.Decimal(10, 2)
   observacao String?
-
-  pedido Pedido         @relation(fields: [pedidoId], references: [id])
-  item   ItemCardapio   @relation(fields: [itemId], references: [id])
+  item       ItemCardapio @relation(fields: [itemId], references: [id])
+  pedido     Pedido       @relation(fields: [pedidoId], references: [id])
 }
 
 model TransacaoPagamento {
-  id        String    @id @default(uuid())
-  pedidoId  String    @unique
+  id        String   @id @default(uuid())
   tipo      String
   dados     String
-  createdAt DateTime  @default(now())
-
-  pedido Pedido       @relation(fields: [pedidoId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 enum PedidoStatus {
