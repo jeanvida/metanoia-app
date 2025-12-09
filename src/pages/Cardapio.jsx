@@ -59,17 +59,17 @@ export default function Cardapio() {
 
         // Agrupar os itens por categoria e salvar no state produtos.
         const itensAgrupados = itens.reduce((acc, item) => {
-          const categoria = item.categoria || 'Outros';
-          if (!acc[categoria]) {
-            acc[categoria] = [];
+          const categoriaNome = item.categoria?.nome || 'Outros';
+          if (!acc[categoriaNome]) {
+            acc[categoriaNome] = [];
           }
           // Ajusta a estrutura para corresponder ao formato esperado
-          acc[categoria].push({
+          acc[categoriaNome].push({
             id: item.id,
             nome: item.nome,
             descricao: item.descricao,
             preco: Number(item.preco),
-            img: item.foto || "burger.png",
+            img: item.img || "burger.png",
           });
           return acc;
         }, { ...produtosFixos }); // Come a com os fixos para garantir as categorias

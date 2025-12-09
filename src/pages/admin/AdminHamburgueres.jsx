@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 export default function AdminHamburgueres() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function AdminHamburgueres() {
   }, [navigate]);
 
   const [hamburgueres, setHamburgueres] = useState([]);
+  const [categoriaId, setCategoriaId] = useState(null);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -30,16 +32,33 @@ export default function AdminHamburgueres() {
     custo: "",
   });
 
-  // Carregar hambúrgueres
+  // Inicializar categorias e carregar hambúrgueres do backend
   useEffect(() => {
-    const data = localStorage.getItem("hamburgueres");
-    if (data) setHamburgueres(JSON.parse(data));
-  }, []);
+    const inicializar = async () => {
+      try {
+        // Inicializar categorias
+        await fetch(`${API_URL}/init-categorias`, { method: "POST" });
 
-  // Salvar sempre que mudar
-  useEffect(() => {
-    localStorage.setItem("hamburgueres", JSON.stringify(hamburgueres));
-  }, [hamburgueres]);
+        // Buscar ID da categoria Hamburgueres
+        const catResponse = await fetch(`${API_URL}/categorias`);
+        const categorias = await catResponse.json();
+        const hamburguesCategoria = categorias.find((c) => c.nome === "Hamburgueres");
+        if (hamburguesCategoria) {
+          setCategoriaId(hamburguesCategoria.id);
+        }
+
+        // Carregar hambúrgueres
+        const response = await fetch(`${API_URL}/itens?categoria=Hamburgueres`);
+        if (response.ok) {
+          const data = await response.json();
+          setHamburgueres(data);
+        }
+      } catch (error) {
+        console.error("Erro ao inicializar:", error);
+      }
+    };
+    inicializar();
+  }, []);
 
   function adicionarIngrediente() {
     if (!novoIngrediente.nome) {
@@ -90,18 +109,44 @@ export default function AdminHamburgueres() {
       img: form.foto || "",
     };
 
-    setHamburgueres((prev) => [...prev, novoHamburguer]);
+    // Enviar para o backend
+    const enviarBackend = async () => {
+      try {
+        const response = await fetch(`${API_URL}/itens`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: form.nome,
+            descricao: form.descricao,
+            preco: Number(form.preco),
+            peso: form.peso,
+            img: form.foto || "",
+            categoriaId: categoriaId || 1,
+          }),
+        });
 
-    setForm({
-      nome: "",
-      descricao: "",
-      peso: "",
-      preco: "",
-      ingredientes: [],
-      foto: "",
-    });
+        if (response.ok) {
+          alert("Hambúrguer cadastrado com sucesso!");
+          setHamburgueres((prev) => [...prev, novoHamburguer]);
+          setForm({
+            nome: "",
+            descricao: "",
+            peso: "",
+            preco: "",
+            ingredientes: [],
+            foto: "",
+          });
+          setNovoIngrediente({ nome: "", peso: "", custo: "" });
+        } else {
+          alert("Erro ao cadastrar. Tente novamente.");
+        }
+      } catch (error) {
+        console.error("Erro ao enviar para backend:", error);
+        alert("Erro ao conectar com o servidor");
+      }
+    };
 
-    setNovoIngrediente({ nome: "", peso: "", custo: "" });
+    enviarBackend();
   }
 
   return (

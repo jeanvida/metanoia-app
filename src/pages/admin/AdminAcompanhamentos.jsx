@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+
 export default function AdminAcompanhamentos() {
   const navigate = useNavigate();
 
@@ -14,6 +16,7 @@ export default function AdminAcompanhamentos() {
   }, [navigate]);
 
   const [acomp, setAcomp] = useState([]);
+  const [categoriaId, setCategoriaId] = useState(null);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -21,16 +24,26 @@ export default function AdminAcompanhamentos() {
     foto: "",
   });
 
-  // Carrega acompanhamentos do localStorage
   useEffect(() => {
-    const data = localStorage.getItem("acompanhamentos");
-    if (data) setAcomp(JSON.parse(data));
-  }, []);
+    const inicializar = async () => {
+      try {
+        await fetch(`${API_URL}/init-categorias`, { method: "POST" });
+        const catResponse = await fetch(`${API_URL}/categorias`);
+        const categorias = await catResponse.json();
+        const acompCategoria = categorias.find((c) => c.nome === "Acompanhamentos");
+        if (acompCategoria) setCategoriaId(acompCategoria.id);
 
-  // Salva acompanhamentos no localStorage sempre que mudar
-  useEffect(() => {
-    localStorage.setItem("acompanhamentos", JSON.stringify(acomp));
-  }, [acomp]);
+        const response = await fetch(`${API_URL}/itens?categoria=Acompanhamentos`);
+        if (response.ok) {
+          const data = await response.json();
+          setAcomp(data);
+        }
+      } catch (error) {
+        console.error("Erro ao inicializar:", error);
+      }
+    };
+    inicializar();
+  }, []);
 
   function salvar() {
     if (!form.nome || !form.preco) {
@@ -38,16 +51,39 @@ export default function AdminAcompanhamentos() {
       return;
     }
 
-    setAcomp([...acomp, form]);
+    const enviarBackend = async () => {
+      try {
+        const response = await fetch(`${API_URL}/itens`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: form.nome,
+            descricao: form.descricao,
+            preco: Number(form.preco),
+            img: form.foto || "",
+            categoriaId: categoriaId || 3,
+          }),
+        });
 
-    setForm({
-      nome: "",
-      descricao: "",
-      preco: "",
-      foto: "",
-    });
+        if (response.ok) {
+          alert("Acompanhamento cadastrado com sucesso!");
+          setAcomp((prev) => [...prev, form]);
+          setForm({
+            nome: "",
+            descricao: "",
+            preco: "",
+            foto: "",
+          });
+        } else {
+          alert("Erro ao cadastrar.");
+        }
+      } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao conectar com o servidor");
+      }
+    };
 
-    alert("Acompanhamento cadastrado!");
+    enviarBackend();
   }
 
   return (

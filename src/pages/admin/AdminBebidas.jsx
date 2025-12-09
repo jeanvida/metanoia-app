@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+
 export default function AdminBebidas() {
   const navigate = useNavigate();
 
@@ -14,6 +16,7 @@ export default function AdminBebidas() {
   }, [navigate]);
 
   const [bebidas, setBebidas] = useState([]);
+  const [categoriaId, setCategoriaId] = useState(null);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -21,16 +24,26 @@ export default function AdminBebidas() {
     foto: "",
   });
 
-  // Carrega bebidas do localStorage
   useEffect(() => {
-    const data = localStorage.getItem("bebidas");
-    if (data) setBebidas(JSON.parse(data));
-  }, []);
+    const inicializar = async () => {
+      try {
+        await fetch(`${API_URL}/init-categorias`, { method: "POST" });
+        const catResponse = await fetch(`${API_URL}/categorias`);
+        const categorias = await catResponse.json();
+        const bebidaCategoria = categorias.find((c) => c.nome === "Bebidas");
+        if (bebidaCategoria) setCategoriaId(bebidaCategoria.id);
 
-  // Salva bebidas no localStorage sempre que mudar
-  useEffect(() => {
-    localStorage.setItem("bebidas", JSON.stringify(bebidas));
-  }, [bebidas]);
+        const response = await fetch(`${API_URL}/itens?categoria=Bebidas`);
+        if (response.ok) {
+          const data = await response.json();
+          setBebidas(data);
+        }
+      } catch (error) {
+        console.error("Erro ao inicializar:", error);
+      }
+    };
+    inicializar();
+  }, []);
 
   function salvar() {
     if (!form.nome || !form.preco) {
@@ -38,15 +51,39 @@ export default function AdminBebidas() {
       return;
     }
 
-    setBebidas([...bebidas, form]);
-    setForm({
-      nome: "",
-      descricao: "",
-      preco: "",
-      foto: "",
-    });
+    const enviarBackend = async () => {
+      try {
+        const response = await fetch(`${API_URL}/itens`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: form.nome,
+            descricao: form.descricao,
+            preco: Number(form.preco),
+            img: form.foto || "",
+            categoriaId: categoriaId || 4,
+          }),
+        });
 
-    alert("Bebida cadastrada!");
+        if (response.ok) {
+          alert("Bebida cadastrada com sucesso!");
+          setBebidas((prev) => [...prev, form]);
+          setForm({
+            nome: "",
+            descricao: "",
+            preco: "",
+            foto: "",
+          });
+        } else {
+          alert("Erro ao cadastrar.");
+        }
+      } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao conectar com o servidor");
+      }
+    };
+
+    enviarBackend();
   }
 
   return (

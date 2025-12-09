@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+
 export default function AdminCombos() {
   const navigate = useNavigate();
 
@@ -14,6 +16,7 @@ export default function AdminCombos() {
   }, [navigate]);
 
   const [combos, setCombos] = useState([]);
+  const [categoriaId, setCategoriaId] = useState(null);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -28,13 +31,25 @@ export default function AdminCombos() {
   });
 
   useEffect(() => {
-    const data = localStorage.getItem("combos");
-    if (data) setCombos(JSON.parse(data));
-  }, []);
+    const inicializar = async () => {
+      try {
+        await fetch(`${API_URL}/init-categorias`, { method: "POST" });
+        const catResponse = await fetch(`${API_URL}/categorias`);
+        const categorias = await catResponse.json();
+        const comboCategoria = categorias.find((c) => c.nome === "Combos");
+        if (comboCategoria) setCategoriaId(comboCategoria.id);
 
-  useEffect(() => {
-    localStorage.setItem("combos", JSON.stringify(combos));
-  }, [combos]);
+        const response = await fetch(`${API_URL}/itens?categoria=Combos`);
+        if (response.ok) {
+          const data = await response.json();
+          setCombos(data);
+        }
+      } catch (error) {
+        console.error("Erro ao inicializar:", error);
+      }
+    };
+    inicializar();
+  }, []);
 
   function adicionarItem() {
     if (!novoItem.nome) return;
@@ -53,17 +68,40 @@ export default function AdminCombos() {
       return;
     }
 
-    setCombos([...combos, form]);
+    const enviarBackend = async () => {
+      try {
+        const response = await fetch(`${API_URL}/itens`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: form.nome,
+            descricao: form.descricao,
+            preco: Number(form.preco),
+            img: form.foto || "",
+            categoriaId: categoriaId || 2,
+          }),
+        });
 
-    setForm({
-      nome: "",
-      descricao: "",
-      preco: "",
-      itens: [],
-      foto: "",
-    });
+        if (response.ok) {
+          alert("Combo cadastrado com sucesso!");
+          setCombos((prev) => [...prev, form]);
+          setForm({
+            nome: "",
+            descricao: "",
+            preco: "",
+            itens: [],
+            foto: "",
+          });
+        } else {
+          alert("Erro ao cadastrar.");
+        }
+      } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao conectar com o servidor");
+      }
+    };
 
-    alert("Combo cadastrado!");
+    enviarBackend();
   }
 
   return (

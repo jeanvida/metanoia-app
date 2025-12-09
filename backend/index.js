@@ -84,6 +84,26 @@ app.get("/api/categorias", async (req, res) => {
   res.json(cats);
 });
 
+// Inicializar categorias padrão
+app.post("/api/init-categorias", async (req, res) => {
+  try {
+    const categoriasPadrao = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
+    const criadas = [];
+    
+    for (const nome of categoriasPadrao) {
+      const existe = await prisma.categoria.findUnique({ where: { nome } });
+      if (!existe) {
+        const cat = await prisma.categoria.create({ data: { nome } });
+        criadas.push(cat);
+      }
+    }
+    
+    res.json({ message: "Categorias inicializadas", criadas });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Rotas de itens
 app.post("/api/itens", async (req, res) => {
   const { nome, descricao, preco, peso, img, categoriaId } = req.body;
@@ -107,10 +127,26 @@ app.post("/api/itens", async (req, res) => {
 });
 
 app.get("/api/itens", async (req, res) => {
-  const itens = await prisma.itemCardapio.findMany({
-    include: { categoria: true },
-  });
-  res.json(itens);
+  const { categoria } = req.query;
+  
+  try {
+    let where = {};
+    if (categoria) {
+      where = {
+        categoria: {
+          nome: categoria
+        }
+      };
+    }
+    
+    const itens = await prisma.itemCardapio.findMany({
+      where,
+      include: { categoria: true },
+    });
+    res.json(itens);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 // Rotas de pedidos
