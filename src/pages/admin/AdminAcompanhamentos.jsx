@@ -63,7 +63,7 @@ export default function AdminAcompanhamentos() {
             nome: form.nome,
             descricao: form.descricao,
             preco: Number(form.preco),
-            img: form.foto || "",
+            // img: form.foto || "", // Remover base64 muito grande
             categoriaId: categoriaId || 3,
           }),
         });

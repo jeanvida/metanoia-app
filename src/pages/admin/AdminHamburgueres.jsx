@@ -136,7 +136,7 @@ export default function AdminHamburgueres() {
             descricao: form.descricao,
             preco: Number(form.preco),
             peso: form.peso,
-            img: form.foto || "",
+            // img: form.foto || "", // Remover base64 muito grande - usar URL depois
             categoriaId: categoriaId || 1,
           }),
         });
