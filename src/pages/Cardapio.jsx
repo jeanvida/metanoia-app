@@ -466,7 +466,11 @@ export default function Cardapio() {
 
         {/* Carrinho */}
         {abaAtiva === "carrinho" && (
-          <>
+          <div style={{
+            maxHeight: '70vh',
+            overflowY: 'auto',
+            paddingRight: '10px'
+          }}>
             <h2>Carrinho</h2>
             {carrinho.length === 0 ? (
               <p>O carrinho está vazio.</p>
@@ -503,7 +507,7 @@ export default function Cardapio() {
                 </button>
               </>
             )}
-          </>
+          </div>
         )}
 
         {/* Checkout */}
@@ -632,7 +636,12 @@ export default function Cardapio() {
 
         {/* Pagamento */}
         {abaAtiva === "pagamento" && (
-          <div style={styles.checkout}>
+          <div style={{
+            ...styles.checkout,
+            maxHeight: '70vh',
+            overflowY: 'auto',
+            paddingRight: '10px'
+          }}>
             <h2>Pagamento</h2>
             
             {/* Feedback de status */}
