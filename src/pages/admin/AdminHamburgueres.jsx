@@ -244,7 +244,7 @@ const styles = {
     marginBottom: "20px",
   },
   subtitle: {
-    marginTop: 50,
+    marginTop: 0,
     fontWeight: "700",
   },
   card: {

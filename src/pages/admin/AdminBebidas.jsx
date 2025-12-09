@@ -118,7 +118,7 @@ const styles = {
     marginBottom: "20px",
   },
   subtitle: {
-    marginTop: "50px",
+    marginTop: 0,
     fontWeight: "bold",
   },
   card: {

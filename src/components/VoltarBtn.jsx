@@ -26,12 +26,12 @@ export default function VoltarBtn() {
         top: "15px",
         background: "#000",
         color: "#fff",
-        padding: "4px 8px",
-        borderRadius: "4px",
+        padding: "6px 10px",
+        borderRadius: "5px",
         border: "none",
         cursor: "pointer",
         fontWeight: "bold",
-        fontSize: "11px",
+        fontSize: "13px",
         zIndex: 5
       }}
     >
