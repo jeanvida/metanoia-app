@@ -1,6 +1,6 @@
 // src/services/recaptcha.js
 
-const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LdSkSUsAAAAAEIa-AOORUmjlBOE_cDXht6nxNAM';
 
 export function getRecaptchaToken() {
   if (!SITE_KEY) {
