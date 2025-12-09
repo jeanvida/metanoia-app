@@ -113,18 +113,17 @@ app.post("/api/init-categorias", async (req, res) => {
 app.post("/api/itens", async (req, res) => {
   const { nome, descricao, preco, peso, img, categoriaId } = req.body;
   try {
-    console.log("📝 Criando item:", { nome, preco, categoriaId });
+    console.log("📝 Criando item:", { nome, preco, peso, categoriaId });
     
-    // 💡 Ajuste: Usa parseFloat para garantir que o 'preco' seja um número 
-    // com ponto flutuante antes de ser enviado ao Decimal do Prisma.
+    // 💡 Conversão segura dos dados
     const item = await prisma.itemCardapio.create({
       data: { 
         nome, 
         descricao, 
-        preco: parseFloat(preco), 
-        peso, 
-        img, 
-        categoriaId 
+        preco: parseFloat(preco) || 0, 
+        peso: peso ? parseInt(peso) : null,  // Converter string para Int ou null
+        img: img || null,
+        categoriaId
       },
       include: { categoria: true }
     });
