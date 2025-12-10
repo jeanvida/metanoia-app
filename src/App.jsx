@@ -8,6 +8,7 @@ import AdminCombos from "./pages/admin/AdminCombos.jsx";
 import AdminAcompanhamentos from "./pages/admin/AdminAcompanhamentos.jsx";
 import AdminBebidas from "./pages/admin/AdminBebidas.jsx";
 import AdminPedidos from "./pages/admin/AdminPedidos.jsx";
+import AdminIngredientes from "./pages/admin/AdminIngredientes.jsx";
 
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { getTranslation } from "./i18n/translations";
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/admin/acompanhamentos" element={<AdminAcompanhamentos />} />
         <Route path="/admin/bebidas" element={<AdminBebidas />} />
         <Route path="/admin/pedidos" element={<AdminPedidos />} />
+        <Route path="/admin/ingredientes" element={<AdminIngredientes />} />
 
         {/* Layout padrão envolvendo Home e Cardápio */}
         <Route element={<Layout />}>

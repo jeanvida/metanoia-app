@@ -56,7 +56,7 @@ export default function Admin() {
 
   // Se estiver logado → mostra painel admin
   const categorias = ["hamburgueres", "combos", "acompanhamentos", "bebidas"];
-  const outros = ["pedidos"];
+  const outros = ["ingredientes", "pedidos"];
 
   return (
     <div style={styles.adminContainer}>
@@ -87,11 +87,11 @@ export default function Admin() {
         {outros.map((item) => (
           <div key={item} style={styles.card}>
             <h3 style={styles.cardTitle}>
-              {item === "pedidos" ? "Pedidos" : item}
+              {item === "pedidos" ? "Pedidos" : item === "ingredientes" ? "Ingredientes" : item}
             </h3>
 
             <Link to={`/admin/${item}`} style={styles.manageBtn}>
-              Visualizar
+              {item === "pedidos" ? "Visualizar" : "Gerenciar"}
             </Link>
           </div>
         ))}

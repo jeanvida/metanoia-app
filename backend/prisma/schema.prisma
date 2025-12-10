@@ -33,6 +33,19 @@ model ItemCardapio {
   @@map("itens_cardapio")
 }
 
+model Ingrediente {
+  id                      String   @id @default(uuid())
+  nome                    String
+  unidade                 String   // kg, litro, unidade
+  precoPorUnidade         Decimal  @db.Decimal(10, 4)
+  quantidadePorEmbalagem  Decimal? @db.Decimal(10, 3)
+  precoEmbalagem          Decimal? @db.Decimal(10, 2)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("ingredientes")
+}
+
 model Pedido {
   id              String       @id @default(uuid())
   clienteNome     String?

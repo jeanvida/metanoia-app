@@ -21,6 +21,7 @@ export default function AdminHamburgueres() {
   const [hamburgueres, setHamburgueres] = useState([]);
   const [categoriaId, setCategoriaId] = useState(null);
   const [editandoId, setEditandoId] = useState(null);
+  const [ingredientesDisponiveis, setIngredientesDisponiveis] = useState([]);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -34,9 +35,8 @@ export default function AdminHamburgueres() {
   });
 
   const [novoIngrediente, setNovoIngrediente] = useState({
-    nome: "",
-    peso: "",
-    custo: "",
+    ingredienteId: "",
+    quantidade: "",
   });
 
   // Inicializar categorias e carregar hambúrgueres do backend
@@ -72,6 +72,13 @@ export default function AdminHamburgueres() {
           const data = await response.json();
           setHamburgueres(data);
         }
+
+        // Carregar ingredientes disponíveis
+        const ingResponse = await fetch(`${API_URL}/api/ingredientes`);
+        if (ingResponse.ok) {
+          const ingredientes = await ingResponse.json();
+          setIngredientesDisponiveis(ingredientes);
+        }
       } catch (error) {
         console.error("Erro ao inicializar:", error);
       }
@@ -80,17 +87,30 @@ export default function AdminHamburgueres() {
   }, []);
 
   function adicionarIngrediente() {
-    if (!novoIngrediente.nome) {
-      alert("Preencha o nome do ingrediente");
+    if (!novoIngrediente.ingredienteId || !novoIngrediente.quantidade) {
+      alert("Selecione um ingrediente e informe a quantidade");
       return;
     }
 
+    const ingredienteSelecionado = ingredientesDisponiveis.find(i => i.id === novoIngrediente.ingredienteId);
+    if (!ingredienteSelecionado) return;
+
+    // Calcular custo baseado na quantidade e preço por unidade
+    const quantidade = parseFloat(novoIngrediente.quantidade);
+    const custo = quantidade * parseFloat(ingredienteSelecionado.precoPorUnidade);
+
     setForm((prev) => ({
       ...prev,
-      ingredientes: [...prev.ingredientes, { ...novoIngrediente }],
+      ingredientes: [...prev.ingredientes, {
+        ingredienteId: ingredienteSelecionado.id,
+        nome: ingredienteSelecionado.nome,
+        quantidade: quantidade,
+        unidade: ingredienteSelecionado.unidade,
+        custo: custo,
+      }],
     }));
 
-    setNovoIngrediente({ nome: "", peso: "", custo: "" });
+    setNovoIngrediente({ ingredienteId: "", quantidade: "" });
   }
 
   function removerIngrediente(index) {
@@ -317,46 +337,46 @@ export default function AdminHamburgueres() {
 
         <h3>Ingredientes</h3>
         <div style={styles.ingRow}>
-          <input
+          <select
             style={styles.inputSmall}
-            placeholder="Nome"
-            value={novoIngrediente.nome}
+            value={novoIngrediente.ingredienteId}
             onChange={(e) =>
-              setNovoIngrediente({ ...novoIngrediente, nome: e.target.value })
+              setNovoIngrediente({ ...novoIngrediente, ingredienteId: e.target.value })
             }
-          />
+          >
+            <option value="">Selecione um ingrediente</option>
+            {ingredientesDisponiveis.map(ing => (
+              <option key={ing.id} value={ing.id}>
+                {ing.nome} (R$ {Number(ing.precoPorUnidade).toFixed(4)}/{ing.unidade === 'kg' ? 'kg' : ing.unidade === 'litro' ? 'L' : 'un'})
+              </option>
+            ))}
+          </select>
 
           <input
             style={styles.inputSmall}
-            placeholder="Peso (g)"
+            placeholder="Quantidade (g, ml ou un)"
             type="number"
-            value={novoIngrediente.peso}
+            step="0.001"
+            value={novoIngrediente.quantidade}
             onChange={(e) =>
-              setNovoIngrediente({ ...novoIngrediente, peso: e.target.value })
-            }
-          />
-
-          <input
-            style={styles.inputSmall}
-            placeholder="Custo (R$)"
-            type="number"
-            value={novoIngrediente.custo}
-            onChange={(e) =>
-              setNovoIngrediente({ ...novoIngrediente, custo: e.target.value })
+              setNovoIngrediente({ ...novoIngrediente, quantidade: e.target.value })
             }
           />
 
           <button style={styles.addIngBtn} onClick={adicionarIngrediente}>
-            Adicionar Ingrediente
+            Adicionar
           </button>
         </div>
 
         {form.ingredientes.length > 0 && (
           <div style={styles.ingList}>
+            <div style={{ marginBottom: "10px", fontWeight: "bold" }}>
+              Custo Total dos Ingredientes: R$ {form.ingredientes.reduce((sum, ing) => sum + ing.custo, 0).toFixed(2)}
+            </div>
             {form.ingredientes.map((ing, idx) => (
               <div key={idx} style={styles.ingItem}>
                 <div>
-                  <strong>{ing.nome}</strong> — {ing.peso}g — R$ {ing.custo}
+                  <strong>{ing.nome}</strong> — {ing.quantidade}{ing.unidade === 'kg' ? 'g' : ing.unidade === 'litro' ? 'ml' : 'un'} — R$ {ing.custo.toFixed(2)}
                 </div>
 
                 <button

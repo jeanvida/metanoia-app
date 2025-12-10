@@ -206,6 +206,68 @@ app.get("/api/itens", async (req, res) => {
   }
 });
 
+// Rotas de ingredientes
+app.get("/api/ingredientes", async (req, res) => {
+  try {
+    const ingredientes = await prisma.ingrediente.findMany({
+      orderBy: { nome: 'asc' }
+    });
+    res.json(ingredientes);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post("/api/ingredientes", async (req, res) => {
+  const { nome, unidade, precoPorUnidade, quantidadePorEmbalagem, precoEmbalagem } = req.body;
+  try {
+    const ingrediente = await prisma.ingrediente.create({
+      data: {
+        nome,
+        unidade,
+        precoPorUnidade: parseFloat(precoPorUnidade),
+        quantidadePorEmbalagem: quantidadePorEmbalagem ? parseFloat(quantidadePorEmbalagem) : null,
+        precoEmbalagem: precoEmbalagem ? parseFloat(precoEmbalagem) : null,
+      },
+    });
+    res.json(ingrediente);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put("/api/ingredientes/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nome, unidade, precoPorUnidade, quantidadePorEmbalagem, precoEmbalagem } = req.body;
+  try {
+    const ingrediente = await prisma.ingrediente.update({
+      where: { id },
+      data: {
+        nome,
+        unidade,
+        precoPorUnidade: parseFloat(precoPorUnidade),
+        quantidadePorEmbalagem: quantidadePorEmbalagem ? parseFloat(quantidadePorEmbalagem) : null,
+        precoEmbalagem: precoEmbalagem ? parseFloat(precoEmbalagem) : null,
+      },
+    });
+    res.json(ingrediente);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete("/api/ingredientes/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.ingrediente.delete({
+      where: { id }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Rotas de pedidos
 app.post("/api/pedidos", async (req, res) => {
   const { clienteNome, clienteTelefone, itens } = req.body;
