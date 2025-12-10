@@ -27,17 +27,36 @@ export default function AdminHamburgueres() {
     descricao: "",
     descricaoES: "",
     descricaoEN: "",
-    peso: "",
-    preco: "",
+    foto: "",
     selo: "",
     ingredientes: [],
-    foto: "",
   });
+
+  const [precoSugerido, setPrecoSugerido] = useState(0);
+  const [precoFinal, setPrecoFinal] = useState("");
+  const [pesoTotal, setPesoTotal] = useState(0);
 
   const [novoIngrediente, setNovoIngrediente] = useState({
     ingredienteId: "",
     quantidade: "",
   });
+
+  // Recalcular totais quando ingredientes mudarem
+  useEffect(() => {
+    if (form.ingredientes.length > 0) {
+      // Calcular custo total
+      const custoTotal = form.ingredientes.reduce((sum, ing) => sum + ing.custo, 0);
+      const sugerido = custoTotal * 3;
+      setPrecoSugerido(sugerido);
+
+      // Calcular peso total (em gramas)
+      const pesoTotalGramas = form.ingredientes.reduce((sum, ing) => sum + (ing.pesoGramas || 0), 0);
+      setPesoTotal(pesoTotalGramas);
+    } else {
+      setPrecoSugerido(0);
+      setPesoTotal(0);
+    }
+  }, [form.ingredientes]);
 
   // Inicializar categorias e carregar hambúrgueres do backend
   useEffect(() => {
@@ -100,6 +119,7 @@ export default function AdminHamburgueres() {
     let quantidadeExibida = quantidade;
     let unidadeExibida = ingredienteSelecionado.unidade;
     let descricaoDetalhada = "";
+    let pesoGramas = 0; // peso em gramas para somar no total
 
     // Lógica de cálculo baseada no tipo de unidade
     if (ingredienteSelecionado.unidade === "unidade") {
@@ -107,6 +127,11 @@ export default function AdminHamburgueres() {
       custo = quantidade * parseFloat(ingredienteSelecionado.precoPorUnidade);
       unidadeExibida = quantidade === 1 ? "un" : "uns";
       descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida}`;
+      
+      // Se tem peso médio por unidade, calcular peso total
+      if (ingredienteSelecionado.pesoMedioPorUnidade) {
+        pesoGramas = quantidade * parseFloat(ingredienteSelecionado.pesoMedioPorUnidade);
+      }
     } else if (ingredienteSelecionado.unidade === "kg") {
       // Ingrediente por peso
       if (ingredienteSelecionado.pesoPorPorcao) {
@@ -116,12 +141,14 @@ export default function AdminHamburgueres() {
         custo = pesoEmKg * parseFloat(ingredienteSelecionado.precoPorUnidade);
         unidadeExibida = quantidade === 1 ? "porção" : "porções";
         descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
+        pesoGramas = pesoTotal;
       } else {
         // Sem porção definida - usuario informa gramas direto
         const quantidadeEmKg = quantidade / 1000;
         custo = quantidadeEmKg * parseFloat(ingredienteSelecionado.precoPorUnidade);
         unidadeExibida = "g";
         descricaoDetalhada = `${quantidadeExibida}g`;
+        pesoGramas = quantidade;
       }
     } else if (ingredienteSelecionado.unidade === "litro") {
       // Ingrediente líquido
@@ -132,12 +159,14 @@ export default function AdminHamburgueres() {
         custo = volumeEmLitros * parseFloat(ingredienteSelecionado.precoPorUnidade);
         unidadeExibida = quantidade === 1 ? "porção" : "porções";
         descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${volumeTotal.toFixed(0)}ml)`;
+        pesoGramas = volumeTotal; // ml como peso para soma
       } else {
         // Sem porção definida - usuario informa ml direto
         const quantidadeEmLitros = quantidade / 1000;
         custo = quantidadeEmLitros * parseFloat(ingredienteSelecionado.precoPorUnidade);
         unidadeExibida = "ml";
         descricaoDetalhada = `${quantidadeExibida}ml`;
+        pesoGramas = quantidade; // ml como peso
       }
     }
 
@@ -150,6 +179,7 @@ export default function AdminHamburgueres() {
         unidade: unidadeExibida,
         descricaoDetalhada: descricaoDetalhada,
         pesoPorPorcao: ingredienteSelecionado.pesoPorPorcao || null,
+        pesoGramas: pesoGramas,
         custo: custo,
       }],
     }));
@@ -184,12 +214,11 @@ export default function AdminHamburgueres() {
       descricao: hamburguer.descricao || "",
       descricaoES: hamburguer.descricaoES || "",
       descricaoEN: hamburguer.descricaoEN || "",
-      peso: hamburguer.peso ? String(hamburguer.peso) : "",
-      preco: String(hamburguer.preco),
+      foto: hamburguer.img || "",
       selo: hamburguer.selo || "",
       ingredientes: hamburguer.ingredientes || [],
-      foto: hamburguer.img || "",
     });
+    setPrecoFinal(String(hamburguer.preco));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -200,12 +229,13 @@ export default function AdminHamburgueres() {
       descricao: "",
       descricaoES: "",
       descricaoEN: "",
-      peso: "",
-      preco: "",
+      foto: "",
       selo: "",
       ingredientes: [],
-      foto: "",
     });
+    setPrecoFinal("");
+    setPesoTotal(0);
+    setPrecoSugerido(0);
   }
 
   async function deletarHamburguer(id) {
@@ -229,19 +259,10 @@ export default function AdminHamburgueres() {
   }
 
   function salvarHamburguer() {
-    if (!form.nome || !form.descricao || !form.preco) {
-      alert("Preencha nome, descrição e preço");
+    if (!form.nome || !form.descricao || !precoFinal) {
+      alert("Preencha nome, descrição e preço final");
       return;
     }
-
-    const novoHamburguer = {
-      nome: form.nome,
-      descricao: form.descricao,
-      peso: form.peso,
-      preco: Number(form.preco),
-      ingredientes: form.ingredientes,
-      img: form.foto || "",
-    };
 
     // Enviar para o backend
     const enviarBackend = async () => {
@@ -258,11 +279,11 @@ export default function AdminHamburgueres() {
             descricao: form.descricao,
             descricaoES: form.descricaoES || null,
             descricaoEN: form.descricaoEN || null,
-            preco: Number(form.preco),
-            peso: form.peso ? parseInt(form.peso, 10) : null,
+            preco: Number(precoFinal),
+            peso: pesoTotal ? parseInt(pesoTotal, 10) : null,
             selo: form.selo || null,
-            // img: form.foto || "", // Remover base64 muito grande - usar URL depois
-            categoriaId: categoriaId || 1,
+            img: form.foto || "",
+            categoriaId: categoriaId,
           }),
         });
 
@@ -287,13 +308,14 @@ export default function AdminHamburgueres() {
             descricao: "",
             descricaoES: "",
             descricaoEN: "",
-            peso: "",
-            preco: "",
+            foto: "",
             selo: "",
             ingredientes: [],
-            foto: "",
           });
-          setNovoIngrediente({ nome: "", peso: "", custo: "" });
+          setPrecoFinal("");
+          setPesoTotal(0);
+          setPrecoSugerido(0);
+          setNovoIngrediente({ ingredienteId: "", quantidade: "" });
         } else {
           try {
             const errorData = JSON.parse(responseText);
@@ -347,23 +369,6 @@ export default function AdminHamburgueres() {
           onChange={(e) => setForm({ ...form, descricaoEN: e.target.value })}
         />
 
-        <div style={styles.row}>
-          <input
-            style={styles.inputSmall}
-            placeholder="Peso total (g)"
-            value={form.peso}
-            onChange={(e) => setForm({ ...form, peso: e.target.value })}
-          />
-
-          <input
-            style={styles.inputSmall}
-            placeholder="Preço ao cliente (R$)"
-            type="number"
-            value={form.preco}
-            onChange={(e) => setForm({ ...form, preco: e.target.value })}
-          />
-        </div>
-
         <div style={{ marginBottom: "15px", marginTop: "25px" }}>
           <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
             Selo (opcional)
@@ -379,7 +384,16 @@ export default function AdminHamburgueres() {
           </select>
         </div>
 
-        <h3>Ingredientes</h3>
+        <label style={styles.fileLabel}>
+          Anexar foto (jpg/png)
+          <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+        </label>
+
+        {form.foto && (
+          <img src={form.foto} alt="preview" style={styles.preview} />
+        )}
+
+        <h3 style={{ marginTop: "30px" }}>Ingredientes</h3>
         <div style={styles.ingRow}>
           <select
             style={styles.inputSmall}
@@ -439,9 +453,6 @@ export default function AdminHamburgueres() {
 
         {form.ingredientes.length > 0 && (
           <div style={styles.ingList}>
-            <div style={{ marginBottom: "10px", fontWeight: "bold" }}>
-              Custo Total dos Ingredientes: R$ {form.ingredientes.reduce((sum, ing) => sum + ing.custo, 0).toFixed(2)}
-            </div>
             {form.ingredientes.map((ing, idx) => (
               <div key={idx} style={styles.ingItem}>
                 <div>
@@ -459,16 +470,40 @@ export default function AdminHamburgueres() {
           </div>
         )}
 
-        <label style={styles.fileLabel}>
-          Anexar foto (jpg/png)
-          <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
-        </label>
+        <h3 style={{ marginTop: "30px" }}>Resumo do Produto</h3>
+        
+        <div style={styles.resumoBox}>
+          <div style={styles.resumoItem}>
+            <strong>Peso Total:</strong> {pesoTotal > 0 ? `${pesoTotal.toFixed(0)}g` : "-"}
+          </div>
+          
+          <div style={styles.resumoItem}>
+            <strong>Custo dos Ingredientes:</strong> R$ {form.ingredientes.reduce((sum, ing) => sum + ing.custo, 0).toFixed(2)}
+          </div>
+          
+          <div style={{ ...styles.resumoItem, backgroundColor: "#fff3cd", padding: "10px", borderRadius: "8px", marginTop: "10px" }}>
+            <strong>Preço Sugerido (custo × 3):</strong> 
+            <span style={{ fontSize: "20px", color: "#856404", marginLeft: "10px" }}>
+              R$ {precoSugerido.toFixed(2)}
+            </span>
+          </div>
+          
+          <div style={{ marginTop: "15px" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+              Preço Final ao Cliente (R$) *
+            </label>
+            <input
+              style={{ ...styles.input, fontSize: "18px", fontWeight: "bold" }}
+              placeholder="Digite o preço de venda"
+              type="number"
+              step="0.01"
+              value={precoFinal}
+              onChange={(e) => setPrecoFinal(e.target.value)}
+            />
+          </div>
+        </div>
 
-        {form.foto && (
-          <img src={form.foto} alt="preview" style={styles.preview} />
-        )}
-
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <button style={styles.saveBtn} onClick={salvarHamburguer}>
             {editandoId ? 'Atualizar Hambúrguer' : 'Salvar Hambúrguer'}
           </button>
@@ -585,6 +620,9 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     marginBottom: 6,
+    padding: "8px",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "6px",
   },
   removeIngBtn: {
     background: "#c62828",
@@ -593,6 +631,17 @@ const styles = {
     borderRadius: 6,
     border: "none",
     cursor: "pointer",
+  },
+  resumoBox: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    border: "2px solid #000",
+  },
+  resumoItem: {
+    marginBottom: 8,
+    fontSize: "16px",
   },
   fileLabel: {
     display: "block",
