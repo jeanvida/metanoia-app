@@ -26,6 +26,7 @@ model ItemCardapio {
   createdAt   DateTime     @default(now())
   img         String?
   peso        Int?
+  selo        String?
   pedidos     PedidoItem[]
   categoria   Categoria    @relation(fields: [categoriaId], references: [id])
 
