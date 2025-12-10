@@ -29,6 +29,7 @@ model ItemCardapio {
   selo        String?
   pedidos     PedidoItem[]
   categoria   Categoria    @relation(fields: [categoriaId], references: [id])
+  ingredientes ItemIngrediente[]
 
   @@map("itens_cardapio")
 }
@@ -44,8 +45,22 @@ model Ingrediente {
   pesoPorPorcao           Decimal? @db.Decimal(10, 3) // Para itens comprados em kg/litro mas porcionados (ex: queijo 1 fatia = 15g, carne 1 disco = 70g)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+  itens                   ItemIngrediente[]
 
   @@map("ingredientes")
+}
+
+model ItemIngrediente {
+  id             String       @id @default(uuid())
+  itemId         String
+  ingredienteId  String
+  quantidade     Decimal      @db.Decimal(10, 3)
+  custo          Decimal      @db.Decimal(10, 4)
+  createdAt      DateTime     @default(now())
+  item           ItemCardapio @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  ingrediente    Ingrediente  @relation(fields: [ingredienteId], references: [id])
+
+  @@map("itens_ingredientes")
 }
 
 model Pedido {

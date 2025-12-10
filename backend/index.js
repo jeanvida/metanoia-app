@@ -87,7 +87,7 @@ app.get("/api/categorias", async (req, res) => {
 // Inicializar categorias padrão
 app.post("/api/init-categorias", async (req, res) => {
   try {
-    const categoriasPadrao = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
+    const categoriasPadrao = ["Hambúrgueres", "Combos", "Acompanhamentos", "Bebidas"];
     const criadas = [];
     
     for (const nome of categoriasPadrao) {
@@ -111,9 +111,9 @@ app.post("/api/init-categorias", async (req, res) => {
 
 // Rotas de itens
 app.post("/api/itens", async (req, res) => {
-  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo } = req.body;
+  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes } = req.body;
   try {
-    console.log("📝 Criando item:", { nome, preco, peso, categoriaId, selo });
+    console.log("📝 Criando item:", { nome, preco, peso, categoriaId, selo, ingredientes });
     
     // 💡 Conversão segura dos dados
     const item = await prisma.itemCardapio.create({
@@ -126,9 +126,23 @@ app.post("/api/itens", async (req, res) => {
         peso: peso ? parseInt(peso) : null,  // Converter string para Int ou null
         img: img || null,
         selo: selo || null,
-        categoriaId
+        categoriaId,
+        ingredientes: ingredientes && ingredientes.length > 0 ? {
+          create: ingredientes.map(ing => ({
+            ingredienteId: ing.ingredienteId,
+            quantidade: parseFloat(ing.quantidade),
+            custo: parseFloat(ing.custo)
+          }))
+        } : undefined
       },
-      include: { categoria: true }
+      include: { 
+        categoria: true,
+        ingredientes: {
+          include: {
+            ingrediente: true
+          }
+        }
+      }
     });
     console.log("✅ Item criado com sucesso:", item.id);
     res.json(item);
@@ -140,9 +154,14 @@ app.post("/api/itens", async (req, res) => {
 
 app.put("/api/itens/:id", async (req, res) => {
   const { id } = req.params;
-  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo } = req.body;
+  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes } = req.body;
   try {
-    console.log("📝 Atualizando item:", id, { nome, preco, peso, selo });
+    console.log("📝 Atualizando item:", id, { nome, preco, peso, selo, ingredientes });
+    
+    // Deletar ingredientes antigos
+    await prisma.itemIngrediente.deleteMany({
+      where: { itemId: id }
+    });
     
     const item = await prisma.itemCardapio.update({
       where: { id },
@@ -155,9 +174,23 @@ app.put("/api/itens/:id", async (req, res) => {
         peso: peso ? parseInt(peso) : null,
         img: img || null,
         selo: selo || null,
-        categoriaId
+        categoriaId,
+        ingredientes: ingredientes && ingredientes.length > 0 ? {
+          create: ingredientes.map(ing => ({
+            ingredienteId: ing.ingredienteId,
+            quantidade: parseFloat(ing.quantidade),
+            custo: parseFloat(ing.custo)
+          }))
+        } : undefined
       },
-      include: { categoria: true }
+      include: { 
+        categoria: true,
+        ingredientes: {
+          include: {
+            ingrediente: true
+          }
+        }
+      }
     });
     console.log("✅ Item atualizado com sucesso:", item.id);
     res.json(item);
@@ -198,7 +231,14 @@ app.get("/api/itens", async (req, res) => {
     
     const itens = await prisma.itemCardapio.findMany({
       where,
-      include: { categoria: true },
+      include: { 
+        categoria: true,
+        ingredientes: {
+          include: {
+            ingrediente: true
+          }
+        }
+      },
     });
     res.json(itens);
   } catch (error) {
