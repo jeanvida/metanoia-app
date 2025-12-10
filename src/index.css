@@ -4,10 +4,20 @@
   box-sizing: border-box;
 }
 
+/* Ocultar barra de rolagem mas manter funcionalidade */
+html {
+  overflow-y: scroll;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE e Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari e Opera */
+}
+
 html, body, #root {
   height: 100%;
   background-color: #F1B100 !important; /* fundo amarelo GLOBAL */
-  overflow-y: scroll; /* Força sempre mostrar barra de rolagem */
 }
 
 body {
