@@ -239,6 +239,87 @@ export default function AdminHamburgueres() {
     });
   }
 
+  function editarQuantidadeIngrediente(index) {
+    const ingrediente = form.ingredientes[index];
+    const novaQuantidade = prompt(
+      `Alterar quantidade de ${ingrediente.nome}\nQuantidade atual: ${ingrediente.quantidade}`,
+      ingrediente.quantidade
+    );
+    
+    if (!novaQuantidade || isNaN(novaQuantidade) || parseFloat(novaQuantidade) <= 0) {
+      return;
+    }
+    
+    // Buscar ingrediente original para recalcular
+    const ingredienteOriginal = ingredientesDisponiveis.find(i => i.id === ingrediente.ingredienteId);
+    if (!ingredienteOriginal) return;
+    
+    const quantidade = parseFloat(novaQuantidade);
+    let custo = 0;
+    let quantidadeExibida = quantidade;
+    let unidadeExibida = ingrediente.unidade;
+    let descricaoDetalhada = "";
+    let pesoGramas = 0;
+    
+    // Recalcular com a nova quantidade usando a mesma lógica
+    if (ingredienteOriginal.unidade === "unidade") {
+      if (ingredienteOriginal.pesoMedioPorUnidade && ingredienteOriginal.pesoPorPorcao) {
+        const pesoTotal = quantidade * parseFloat(ingredienteOriginal.pesoPorPorcao);
+        const unidadesNecessarias = pesoTotal / parseFloat(ingredienteOriginal.pesoMedioPorUnidade);
+        custo = unidadesNecessarias * parseFloat(ingredienteOriginal.precoPorUnidade);
+        pesoGramas = pesoTotal;
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
+      } else {
+        custo = quantidade * parseFloat(ingredienteOriginal.precoPorUnidade);
+        if (ingredienteOriginal.pesoMedioPorUnidade) {
+          pesoGramas = quantidade * parseFloat(ingredienteOriginal.pesoMedioPorUnidade);
+          descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+        } else {
+          descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida}`;
+        }
+      }
+    } else if (ingredienteOriginal.unidade === "kg") {
+      if (ingredienteOriginal.pesoPorPorcao) {
+        const pesoTotal = quantidade * parseFloat(ingredienteOriginal.pesoPorPorcao);
+        const pesoEmKg = pesoTotal / 1000;
+        custo = pesoEmKg * parseFloat(ingredienteOriginal.precoPorUnidade);
+        pesoGramas = pesoTotal;
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
+      } else {
+        const quantidadeEmKg = quantidade / 1000;
+        custo = quantidadeEmKg * parseFloat(ingredienteOriginal.precoPorUnidade);
+        pesoGramas = quantidade;
+        descricaoDetalhada = `${quantidadeExibida}g`;
+      }
+    } else if (ingredienteOriginal.unidade === "litro") {
+      if (ingredienteOriginal.pesoPorPorcao) {
+        const volumeTotal = quantidade * parseFloat(ingredienteOriginal.pesoPorPorcao);
+        const volumeEmLitros = volumeTotal / 1000;
+        custo = volumeEmLitros * parseFloat(ingredienteOriginal.precoPorUnidade);
+        pesoGramas = volumeTotal;
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${volumeTotal.toFixed(0)}ml)`;
+      } else {
+        const quantidadeEmLitros = quantidade / 1000;
+        custo = quantidadeEmLitros * parseFloat(ingredienteOriginal.precoPorUnidade);
+        pesoGramas = quantidade;
+        descricaoDetalhada = `${quantidadeExibida}ml`;
+      }
+    }
+    
+    // Atualizar o ingrediente
+    setForm((prev) => {
+      const lista = [...prev.ingredientes];
+      lista[index] = {
+        ...lista[index],
+        quantidade: quantidadeExibida,
+        descricaoDetalhada: descricaoDetalhada,
+        pesoGramas: pesoGramas,
+        custo: custo,
+      };
+      return { ...prev, ingredientes: lista };
+    });
+  }
+
   function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -696,12 +777,20 @@ export default function AdminHamburgueres() {
                   <strong>{ing.nome}</strong> — {ing.descricaoDetalhada} — R$ {ing.custo.toFixed(2)}
                 </div>
 
-                <button
-                  style={styles.removeIngBtn}
-                  onClick={() => removerIngrediente(idx)}
-                >
-                  Remover
-                </button>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <button
+                    style={styles.editIngBtn}
+                    onClick={() => editarQuantidadeIngrediente(idx)}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    style={styles.removeIngBtn}
+                    onClick={() => removerIngrediente(idx)}
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -864,6 +953,15 @@ const styles = {
     backgroundColor: "#f9f9f9",
     borderRadius: "6px",
   },
+  editIngBtn: {
+    background: "#1976d2",
+    color: "#fff",
+    padding: "6px 10px",
+    borderRadius: 6,
+    border: "none",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
   removeIngBtn: {
     background: "#c62828",
     color: "#fff",
@@ -871,6 +969,7 @@ const styles = {
     borderRadius: 6,
     border: "none",
     cursor: "pointer",
+    fontSize: "14px",
   },
   resumoBox: {
     marginTop: 20,
