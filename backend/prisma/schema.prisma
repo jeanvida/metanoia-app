@@ -19,6 +19,8 @@ model ItemCardapio {
   id          String       @id @default(uuid())
   nome        String
   descricao   String?
+  descricaoES String?
+  descricaoEN String?
   preco       Decimal      @db.Decimal(10, 2)
   categoriaId String
   createdAt   DateTime     @default(now())
