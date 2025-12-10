@@ -355,6 +355,57 @@ export default function AdminHamburgueres() {
     }
   }
 
+  async function duplicarHamburguer(hamburguer) {
+    if (!confirm(`Duplicar "${hamburguer.nome}"?`)) return;
+    
+    try {
+      // Preparar dados do hambúrguer duplicado
+      const ingredientesParaSalvar = hamburguer.ingredientes?.map(itemIng => ({
+        ingredienteId: itemIng.ingredienteId,
+        quantidade: itemIng.quantidade,
+        custo: itemIng.custo
+      })) || [];
+
+      const dadosDuplicados = {
+        nome: `${hamburguer.nome} - Cópia`,
+        descricao: hamburguer.descricao || "",
+        descricaoES: hamburguer.descricaoES || "",
+        descricaoEN: hamburguer.descricaoEN || "",
+        preco: hamburguer.preco,
+        img: hamburguer.img || "",
+        selo: hamburguer.selo || "",
+        categoriaId: categoriaId,
+        ingredientes: ingredientesParaSalvar
+      };
+
+      console.log("📋 Duplicando hambúrguer:", dadosDuplicados);
+
+      const response = await fetch(`${API_URL}/api/itens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dadosDuplicados),
+      });
+
+      if (response.ok) {
+        alert('Hambúrguer duplicado com sucesso!');
+        
+        // Recarregar lista
+        const recarregar = await fetch(`${API_URL}/api/itens?categoria=Hambúrgueres`);
+        if (recarregar.ok) {
+          const data = await recarregar.json();
+          setHamburgueres(data);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('Erro ao duplicar:', errorText);
+        alert('Erro ao duplicar hambúrguer');
+      }
+    } catch (error) {
+      console.error('Erro ao duplicar:', error);
+      alert('Erro ao conectar com o servidor');
+    }
+  }
+
   function salvarHamburguer() {
     if (!form.nome || !form.descricao || !precoFinal) {
       alert("Preencha nome, descrição e preço final");
@@ -653,6 +704,9 @@ export default function AdminHamburgueres() {
             <button style={styles.editBtn} onClick={() => editarHamburguer(h)}>
               ✏️ Editar
             </button>
+            <button style={styles.duplicateBtn} onClick={() => duplicarHamburguer(h)}>
+              📋 Duplicar
+            </button>
             <button style={styles.deleteBtn} onClick={() => deletarHamburguer(h.id)}>
               🗑️
             </button>
@@ -823,6 +877,16 @@ const styles = {
   editBtn: {
     background: "#000",
     color: "#F1B100",
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "none",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  duplicateBtn: {
+    background: "#1976d2",
+    color: "#fff",
     padding: "8px 12px",
     borderRadius: 8,
     border: "none",
