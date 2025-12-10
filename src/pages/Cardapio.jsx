@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 // 1. Importando as fun  es de servi o que se comunicar o com o backend
 import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamentos";
 import { getRecaptchaToken, resetRecaptcha, SITE_KEY } from "../services/recaptcha";
+import { translations, getTranslation } from "../i18n/translations";
 
 // 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
 const API_URL = import.meta.env.VITE_API_URL || 
@@ -10,6 +11,9 @@ const API_URL = import.meta.env.VITE_API_URL ||
     : "https://metanoia-app.onrender.com");
 
 export default function Cardapio() {
+  const [idioma, setIdioma] = useState("pt"); // Estado para idioma
+  const t = (key) => getTranslation(idioma, key); // Função helper
+  
   const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
   const [categoriaAtiva, setCategoriaAtiva] = useState("Hamburgueres");
   const [modalImg, setModalImg] = useState(null);
@@ -346,8 +350,39 @@ export default function Cardapio() {
   }  return (
     <div style={styles.container}>
 
-      {/* REMOVIDO: Seletor de Ambiente */}
-      {/* ... */}
+      {/* Seletor de Idioma */}
+      <div style={styles.languageSelector}>
+        <button 
+          onClick={() => setIdioma("pt")} 
+          style={{
+            ...styles.flagBtn,
+            ...(idioma === "pt" ? styles.flagBtnActive : {})
+          }}
+          title="Português"
+        >
+          🇧🇷
+        </button>
+        <button 
+          onClick={() => setIdioma("es")} 
+          style={{
+            ...styles.flagBtn,
+            ...(idioma === "es" ? styles.flagBtnActive : {})
+          }}
+          title="Español"
+        >
+          🇪🇸
+        </button>
+        <button 
+          onClick={() => setIdioma("en")} 
+          style={{
+            ...styles.flagBtn,
+            ...(idioma === "en" ? styles.flagBtnActive : {})
+          }}
+          title="English"
+        >
+          🇺🇸
+        </button>
+      </div>
 
       {/* Ícone do Carrinho */}
       <button
@@ -365,7 +400,7 @@ export default function Cardapio() {
         )}
       </button>
 
-      <h1 style={styles.title}>Cardápio</h1>
+      <h1 style={styles.title}>{t("cardapio")}</h1>
 
       {/* Tabs */}
       <div style={styles.tabs}>
@@ -378,7 +413,7 @@ export default function Cardapio() {
               ...(categoriaAtiva === cat ? styles.activeTab : {}),
             }}
           >
-            {cat}
+            {t(cat)}
           </button>
         ))}
         {/* Resto do JSX continua inalterado... */}
@@ -408,7 +443,7 @@ export default function Cardapio() {
                 style={styles.addBtn}
                 onClick={() => adicionarAoCarrinho(item)}
               >
-                Adicionar ao carrinho
+                {t("adicionar")}
               </button>
             </div>
           ))
@@ -443,7 +478,7 @@ export default function Cardapio() {
             }}
             onClick={() => setAbaAtiva("carrinho")}
           >
-            Carrinho
+            {t("carrinho")}
           </button>
           <button
             style={{
@@ -453,7 +488,7 @@ export default function Cardapio() {
             onClick={() => setAbaAtiva("checkout")}
             disabled={carrinho.length === 0}
           >
-            Checkout
+            {t("checkout")}
           </button>
           <button
             style={{
@@ -463,7 +498,7 @@ export default function Cardapio() {
             // Habilita o clique para voltar para a aba de pagamento
             onClick={() => setAbaAtiva("pagamento")}
           >
-            Pagamento
+            {t("pagamento")}
           </button>
         </div>
 
@@ -474,9 +509,9 @@ export default function Cardapio() {
             overflowY: 'auto',
             paddingRight: '10px'
           }}>
-            <h2>Carrinho</h2>
+            <h2>{t("carrinho")}</h2>
             {carrinho.length === 0 ? (
-              <p>O carrinho está vazio.</p>
+              <p>{t("carrinhoVazio")}</p>
             ) : (
               <>
                 {carrinho.map((item) => (
@@ -491,6 +526,7 @@ export default function Cardapio() {
                           alterarQuantidade(item.id, Number(e.target.value))
                         }
                         style={styles.quantInput}
+                        placeholder={t("quantidade")}
                       />
                     </span>
                     <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
@@ -503,10 +539,10 @@ export default function Cardapio() {
                   </div>
                 ))}
                 <p style={{ fontWeight: "bold", marginTop: "10px" }}>
-                  Total: R$ {total.toFixed(2)}
+                  {t("total")}: R$ {total.toFixed(2)}
                 </p>
                 <button style={styles.finalizarBtn} onClick={() => setAbaAtiva("checkout")}>
-                  Ir para Checkout
+                  {t("irParaCheckout")}
                 </button>
               </>
             )}
@@ -516,19 +552,19 @@ export default function Cardapio() {
         {/* Checkout */}
         {abaAtiva === "checkout" && (
           <div style={styles.checkout}>
-            <h2>Checkout</h2>
+            <h2>{t("checkout")}</h2>
             <div style={styles.section}>
-              <h3>Endereço</h3>
+              <h3>{t("endereco")}</h3>
               <input
                 type="text"
-                placeholder="CEP"
+                placeholder={t("cep")}
                 value={frete.cep || ""}
                 onChange={(e) => setFrete({ ...frete, cep: e.target.value })}
                 style={styles.input}
               />
               <input
                 type="text"
-                placeholder="Rua"
+                placeholder={t("rua")}
                 value={cliente.endereco || ""}
                 onChange={(e) =>
                   setCliente({ ...cliente, endereco: e.target.value })
@@ -537,7 +573,7 @@ export default function Cardapio() {
               />
               <input
                 type="text"
-                placeholder="Número"
+                placeholder={t("numero")}
                 value={cliente.numero || ""}
                 onChange={(e) =>
                   setCliente({ ...cliente, numero: e.target.value })
@@ -546,14 +582,14 @@ export default function Cardapio() {
               />
               <input
                 type="text"
-                placeholder="Ap / Casa"
+                placeholder={t("apCasa")}
                 value={cliente.ap || ""}
                 onChange={(e) => setCliente({ ...cliente, ap: e.target.value })}
                 style={styles.input}
               />
               <input
                 type="text"
-                placeholder="Bairro"
+                placeholder={t("bairro")}
                 value={cliente.bairro || ""}
                 onChange={(e) =>
                   setCliente({ ...cliente, bairro: e.target.value })
@@ -562,7 +598,7 @@ export default function Cardapio() {
               />
               <input
                 type="text"
-                placeholder="Cidade"
+                placeholder={t("cidade")}
                 value={cliente.cidade || ""}
                 onChange={(e) =>
                   setCliente({ ...cliente, cidade: e.target.value })
@@ -571,17 +607,17 @@ export default function Cardapio() {
               />
               <input
                 type="text"
-                placeholder="UF"
+                placeholder={t("estado")}
                 value={cliente.uf || ""}
                 onChange={(e) => setCliente({ ...cliente, uf: e.target.value })}
                 style={styles.input}
               />
             </div>
             <div style={styles.section}>
-              <h3>Cliente</h3>
+              <h3>{t("dadosPessoais")}</h3>
               <input
                 type="text"
-                placeholder="Nome"
+                placeholder={t("nome")}
                 value={cliente.nome || ""}
                 onChange={(e) =>
                   setCliente({ ...cliente, nome: e.target.value })
@@ -590,14 +626,14 @@ export default function Cardapio() {
               />
 <input
   type="email"
-  placeholder="Email"
+  placeholder={t("email")}
   value={cliente.email || ""}
   onChange={(e) => setCliente({ ...cliente, email: e.target.value })}
   style={styles.input}
 />
 <input
   type="text"
-  placeholder="CPF (somente números)"
+  placeholder={t("cpf")}
   value={cliente.cpf || ""}
   onChange={(e) => setCliente({ ...cliente, cpf: e.target.value.replace(/\D/g, "") })}
   style={styles.input}
@@ -605,7 +641,7 @@ export default function Cardapio() {
 />
               <input
                 type="tel"
-                placeholder="Telefone"
+                placeholder={t("telefone")}
                 value={cliente.telefone || ""}
                 onChange={(e) =>
                   setCliente({ ...cliente, telefone: e.target.value })
@@ -614,7 +650,7 @@ export default function Cardapio() {
               />
             </div>
             <div style={styles.section}>
-              <h3>Resumo do Pedido</h3>
+              <h3>{t("resumoPedido")}</h3>
               {carrinho.map((item) => (
                 <div key={item.id} style={styles.resumoItem}>
                   <span>
@@ -624,14 +660,14 @@ export default function Cardapio() {
                 </div>
               ))}
               <div style={styles.resumoItem}>
-                <span>Frete ({frete.km}km)</span>
+                <span>{t("frete")} ({frete.km}km)</span>
                 <span>R$ {frete.valor.toFixed(2)}</span>
               </div>
               <p style={styles.total}>
-                Total: R$ {(total + frete.valor).toFixed(2)}
+                {t("total")}: R$ {(total + frete.valor).toFixed(2)}
               </p>
               <button style={styles.finalizarBtn} onClick={irParaPagamento}>
-                Ir para Pagamento
+                {t("irParaPagamento")}
               </button>
             </div>
           </div>
@@ -645,7 +681,7 @@ export default function Cardapio() {
             overflowY: 'auto',
             paddingRight: '10px'
           }}>
-            <h2>Pagamento</h2>
+            <h2>{t("pagamento")}</h2>
             
             {/* Feedback de status */}
             <p style={{ fontWeight: 'bold', color: loadingPagamento ? 'blue' : (statusPagamento.includes('Falha') ? 'red' : 'green') }}>
@@ -653,20 +689,20 @@ export default function Cardapio() {
             </p>
 
             <div style={styles.section}>
-              <h3>Cartão de Crédito</h3>
+              <h3>{t("cartaoCredito")}</h3>
               
               {!mostrarFormCartao ? (
                 <button 
                   style={styles.finalizarBtn} 
                   onClick={() => setMostrarFormCartao(true)}
                 >
-                  Pagar com Cartão
+                  {t("pagarComCartao")}
                 </button>
               ) : (
                 <>
                   <input
                     type="text"
-                    placeholder="Número do cartão"
+                    placeholder={t("numeroCartao")}
                     value={cartao.numero || ""}
                     onChange={(e) =>
                       setCartao({ ...cartao, numero: e.target.value })
@@ -675,7 +711,7 @@ export default function Cardapio() {
                   />
                   <input
                     type="text"
-                    placeholder="Nome no cartão"
+                    placeholder={t("nomeCartao")}
                     value={cartao.nome || ""}
                     onChange={(e) =>
                       setCartao({ ...cartao, nome: e.target.value })
@@ -684,7 +720,7 @@ export default function Cardapio() {
                   />
                   <input
                     type="text"
-                    placeholder="MM/AA"
+                    placeholder={t("validade")}
                     value={cartao.validade || ""}
                     onChange={(e) =>
                       setCartao({ ...cartao, validade: e.target.value })
@@ -693,7 +729,7 @@ export default function Cardapio() {
                   />
                   <input
                     type="text"
-                    placeholder="CVV"
+                    placeholder={t("cvv")}
                     value={cartao.cvv || ""}
                     onChange={(e) =>
                       setCartao({ ...cartao, cvv: e.target.value })
@@ -706,25 +742,25 @@ export default function Cardapio() {
                     onClick={pagarCartao}
                     disabled={loadingPagamento}
                   >
-                    Confirmar Pagamento
+                    {t("confirmarPagamento")}
                   </button>
                   <button 
                     style={{ ...styles.finalizarBtn, backgroundColor: '#666', marginTop: '10px' }} 
                     onClick={() => setMostrarFormCartao(false)}
                   >
-                    Cancelar
+                    {t("cancelar")}
                   </button>
                 </>
               )}
             </div>
             <div style={styles.section}>
-              <h3>PIX</h3>
+              <h3>{t("pix")}</h3>
               <button 
                 style={styles.finalizarBtn} 
                 onClick={pagarPIX}
                 disabled={loadingPagamento} // Desabilita durante o processamento
               >
-                Pagar com PIX
+                {t("pagarComPix")}
               </button>
             </div>
 
@@ -785,6 +821,9 @@ export default function Cardapio() {
 const styles = {
 // ... (Mantenha seus estilos originais aqui)
   container: { padding: "20px", position: "relative" },
+  languageSelector: { position: "fixed", top: "20px", left: "20px", display: "flex", gap: "8px", zIndex: 999 },
+  flagBtn: { fontSize: "28px", background: "transparent", border: "2px solid transparent", borderRadius: "8px", cursor: "pointer", padding: "5px 8px", transition: "all 0.2s" },
+  flagBtnActive: { border: "2px solid #000", backgroundColor: "#F1B100", transform: "scale(1.1)" },
   carrinhoIconBtn: { position: "fixed", top: "20px", right: "20px", backgroundColor: "#000", color: "#F1B100", border: "2px solid #000", borderRadius: "50%", width: "60px", height: "60px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 999, fontWeight: "bold" },
   fecharDrawerBtn: { position: "absolute", top: "50%", left: "-32px", transform: "translateY(-50%)", backgroundColor: "#000", color: "#F1B100", border: "2px solid #000", borderRadius: "8px 0 0 8px", width: "32px", height: "32px", fontSize: "14px", cursor: "pointer", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1001, lineHeight: "1" },
   title: { fontSize: "32px", fontWeight: "bold", color: "#000", marginBottom: "20px" },
