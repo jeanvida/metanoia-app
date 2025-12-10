@@ -435,8 +435,12 @@ export default function Cardapio() {
                 onClick={() => setModalImg(item.img)}
               />
               <h3 style={styles.cardTitle}>{item.nome}</h3>
-              {item.descricao && (
-                <p style={styles.descricao}>{item.descricao}</p>
+              {(item.descricao || item.descricaoES || item.descricaoEN) && (
+                <p style={styles.descricao}>
+                  {idioma === 'es' ? (item.descricaoES || item.descricao) : 
+                   idioma === 'en' ? (item.descricaoEN || item.descricao) : 
+                   item.descricao}
+                </p>
               )}
               <p style={styles.preco}>R$ {item.preco.toFixed(2)}</p>
               <button

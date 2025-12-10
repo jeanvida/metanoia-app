@@ -23,6 +23,8 @@ export default function AdminHamburgueres() {
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
+    descricaoES: "",
+    descricaoEN: "",
     peso: "",
     preco: "",
     ingredientes: [],
@@ -134,6 +136,8 @@ export default function AdminHamburgueres() {
           body: JSON.stringify({
             nome: form.nome,
             descricao: form.descricao,
+            descricaoES: form.descricaoES || null,
+            descricaoEN: form.descricaoEN || null,
             preco: Number(form.preco),
             peso: form.peso ? parseInt(form.peso, 10) : null,
             // img: form.foto || "", // Remover base64 muito grande - usar URL depois
@@ -151,6 +155,8 @@ export default function AdminHamburgueres() {
           setForm({
             nome: "",
             descricao: "",
+            descricaoES: "",
+            descricaoEN: "",
             peso: "",
             preco: "",
             ingredientes: [],
@@ -191,9 +197,23 @@ export default function AdminHamburgueres() {
 
         <textarea
           style={styles.textarea}
-          placeholder="Descrição"
+          placeholder="Descrição (PT)"
           value={form.descricao}
           onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Descripción (ES)"
+          value={form.descricaoES}
+          onChange={(e) => setForm({ ...form, descricaoES: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Description (EN)"
+          value={form.descricaoEN}
+          onChange={(e) => setForm({ ...form, descricaoEN: e.target.value })}
         />
 
         <div style={styles.row}>

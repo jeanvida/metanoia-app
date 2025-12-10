@@ -23,6 +23,8 @@ export default function AdminAcompanhamentos() {
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
+    descricaoES: "",
+    descricaoEN: "",
     preco: "",
     foto: "",
   });
@@ -62,6 +64,8 @@ export default function AdminAcompanhamentos() {
           body: JSON.stringify({
             nome: form.nome,
             descricao: form.descricao,
+            descricaoES: form.descricaoES,
+            descricaoEN: form.descricaoEN,
             preco: Number(form.preco),
             // img: form.foto || "", // Remover base64 muito grande
             categoriaId: categoriaId || 3,
@@ -74,6 +78,8 @@ export default function AdminAcompanhamentos() {
           setForm({
             nome: "",
             descricao: "",
+            descricaoES: "",
+            descricaoEN: "",
             preco: "",
             foto: "",
           });
@@ -111,6 +117,20 @@ export default function AdminAcompanhamentos() {
           placeholder="Descrição"
           value={form.descricao}
           onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Descripción (ES)"
+          value={form.descricaoES}
+          onChange={(e) => setForm({ ...form, descricaoES: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Description (EN)"
+          value={form.descricaoEN}
+          onChange={(e) => setForm({ ...form, descricaoEN: e.target.value })}
         />
 
         <input

@@ -23,6 +23,8 @@ export default function AdminCombos() {
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
+    descricaoES: "",
+    descricaoEN: "",
     preco: "",
     itens: [],
     foto: "",
@@ -79,6 +81,8 @@ export default function AdminCombos() {
           body: JSON.stringify({
             nome: form.nome,
             descricao: form.descricao,
+            descricaoES: form.descricaoES,
+            descricaoEN: form.descricaoEN,
             preco: Number(form.preco),
             // img: form.foto || "", // Remover base64 muito grande
             categoriaId: categoriaId || 2,
@@ -91,6 +95,8 @@ export default function AdminCombos() {
           setForm({
             nome: "",
             descricao: "",
+            descricaoES: "",
+            descricaoEN: "",
             preco: "",
             itens: [],
             foto: "",
@@ -128,6 +134,20 @@ export default function AdminCombos() {
           placeholder="Descrição"
           value={form.descricao}
           onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Descripción (ES)"
+          value={form.descricaoES}
+          onChange={(e) => setForm({ ...form, descricaoES: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Description (EN)"
+          value={form.descricaoEN}
+          onChange={(e) => setForm({ ...form, descricaoEN: e.target.value })}
         />
 
         <input

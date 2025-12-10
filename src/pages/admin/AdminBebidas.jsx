@@ -23,6 +23,8 @@ export default function AdminBebidas() {
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
+    descricaoES: "",
+    descricaoEN: "",
     preco: "",
     foto: "",
   });
@@ -62,6 +64,8 @@ export default function AdminBebidas() {
           body: JSON.stringify({
             nome: form.nome,
             descricao: form.descricao,
+            descricaoES: form.descricaoES,
+            descricaoEN: form.descricaoEN,
             preco: Number(form.preco),
             // img: form.foto || "", // Remover base64 muito grande
             categoriaId: categoriaId || 4,
@@ -74,6 +78,8 @@ export default function AdminBebidas() {
           setForm({
             nome: "",
             descricao: "",
+            descricaoES: "",
+            descricaoEN: "",
             preco: "",
             foto: "",
           });
@@ -110,6 +116,20 @@ export default function AdminBebidas() {
           placeholder="Descrição"
           value={form.descricao}
           onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Descripción (ES)"
+          value={form.descricaoES}
+          onChange={(e) => setForm({ ...form, descricaoES: e.target.value })}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Description (EN)"
+          value={form.descricaoEN}
+          onChange={(e) => setForm({ ...form, descricaoEN: e.target.value })}
         />
 
         <input
