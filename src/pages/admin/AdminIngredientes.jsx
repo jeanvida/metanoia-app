@@ -1,6 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableItem } from "../../components/SortableItem";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
@@ -29,6 +44,41 @@ export default function AdminIngredientes() {
     pesoPorPorcao: "", // peso de cada porção (ex: queijo = 15g/fatia, carne = 70g/disco) - para compra por KG/LITRO
     tipoPorcao: "porção", // como chamar a porção: "fatia", "unidade", "porção"
   });
+
+  // Sensors para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  async function handleDragEnd(event) {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setIngredientes((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        
+        // Salvar nova ordem no backend
+        const updates = reordered.map((item, index) => ({
+          id: item.id,
+          ordem: index
+        }));
+        
+        fetch(`${API_URL}/api/ingredientes/reordenar`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ingredientes: updates })
+        }).catch(err => console.error('Erro ao salvar ordem:', err));
+        
+        return reordered;
+      });
+    }
+  }
 
   useEffect(() => {
     carregarIngredientes();
@@ -368,36 +418,50 @@ export default function AdminIngredientes() {
 
       {ingredientes.length === 0 && <p>Nenhum ingrediente cadastrado.</p>}
 
-      {ingredientes.map((ing) => (
-        <div key={ing.id} style={styles.itemCard}>
-          <div style={{ flex: 1 }}>
-            <strong>{ing.nome}</strong>
-            <br />
-            <small>
-              Unidade: {getUnidadeLabel(ing.unidade)} | 
-              Preço: R$ {Number(ing.precoPorUnidade).toFixed(4)}/{getUnidadeLabel(ing.unidade)}
-              {ing.pesoMedioPorUnidade && (
-                <> | 1 {getUnidadeLabel(ing.unidade)} ≈ {Number(ing.pesoMedioPorUnidade).toFixed(1)}g</>
-              )}
-              {ing.pesoPorPorcao && (
-                <> | <strong style={{color: "#28a745"}}>Porção: {Number(ing.pesoPorPorcao).toFixed(1)}g</strong></>
-              )}
-              {ing.quantidadePorEmbalagem && (
-                <> | Embalagem: {ing.quantidadePorEmbalagem} {getUnidadeLabel(ing.unidade)} = R$ {Number(ing.precoEmbalagem).toFixed(2)}</>
-              )}
-            </small>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <button style={styles.editBtn} onClick={() => editarIngrediente(ing)}>
-              ✏️ Editar
-            </button>
-            <button style={styles.deleteBtn} onClick={() => deletarIngrediente(ing.id)}>
-              🗑️
-            </button>
-          </div>
-        </div>
-      ))}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={ingredientes.map(ing => ing.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {ingredientes.map((ing) => (
+            <SortableItem key={ing.id} id={ing.id}>
+              <div style={styles.itemCard}>
+                <span style={styles.dragHandle}>⋮⋮</span>
+                <div style={{ flex: 1 }}>
+                  <strong>{ing.nome}</strong>
+                  <br />
+                  <small>
+                    Unidade: {getUnidadeLabel(ing.unidade)} | 
+                    Preço: R$ {Number(ing.precoPorUnidade).toFixed(4)}/{getUnidadeLabel(ing.unidade)}
+                    {ing.pesoMedioPorUnidade && (
+                      <> | 1 {getUnidadeLabel(ing.unidade)} ≈ {Number(ing.pesoMedioPorUnidade).toFixed(1)}g</>
+                    )}
+                    {ing.pesoPorPorcao && (
+                      <> | <strong style={{color: "#28a745"}}>Porção: {Number(ing.pesoPorPorcao).toFixed(1)}g</strong></>
+                    )}
+                    {ing.quantidadePorEmbalagem && (
+                      <> | Embalagem: {ing.quantidadePorEmbalagem} {getUnidadeLabel(ing.unidade)} = R$ {Number(ing.precoEmbalagem).toFixed(2)}</>
+                    )}
+                  </small>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                  <button style={styles.editBtn} onClick={() => editarIngrediente(ing)}>
+                    ✏️ Editar
+                  </button>
+                  <button style={styles.deleteBtn} onClick={() => deletarIngrediente(ing.id)}>
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </SortableItem>
+          ))}
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
@@ -499,5 +563,12 @@ const styles = {
     border: "none",
     cursor: "pointer",
     fontSize: "16px",
+  },
+  dragHandle: {
+    cursor: "grab",
+    marginRight: "10px",
+    color: "#999",
+    fontSize: "18px",
+    userSelect: "none",
   },
 };

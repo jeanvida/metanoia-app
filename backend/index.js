@@ -128,10 +128,11 @@ app.post("/api/itens", async (req, res) => {
         selo: selo || null,
         categoriaId,
         ingredientes: ingredientes && ingredientes.length > 0 ? {
-          create: ingredientes.map(ing => ({
+          create: ingredientes.map((ing, index) => ({
             ingredienteId: ing.ingredienteId,
             quantidade: parseFloat(ing.quantidade),
-            custo: parseFloat(ing.custo)
+            custo: parseFloat(ing.custo),
+            ordem: index
           }))
         } : undefined
       },
@@ -176,10 +177,11 @@ app.put("/api/itens/:id", async (req, res) => {
         selo: selo || null,
         categoriaId,
         ingredientes: ingredientes && ingredientes.length > 0 ? {
-          create: ingredientes.map(ing => ({
+          create: ingredientes.map((ing, index) => ({
             ingredienteId: ing.ingredienteId,
             quantidade: parseFloat(ing.quantidade),
-            custo: parseFloat(ing.custo)
+            custo: parseFloat(ing.custo),
+            ordem: index
           }))
         } : undefined
       },
@@ -236,9 +238,11 @@ app.get("/api/itens", async (req, res) => {
         ingredientes: {
           include: {
             ingrediente: true
-          }
+          },
+          orderBy: { ordem: 'asc' }
         }
       },
+      orderBy: { ordem: 'asc' }
     });
     console.log("📦 Retornando itens:", itens.length, "itens");
     if (itens.length > 0) {
@@ -254,7 +258,7 @@ app.get("/api/itens", async (req, res) => {
 app.get("/api/ingredientes", async (req, res) => {
   try {
     const ingredientes = await prisma.ingrediente.findMany({
-      orderBy: { nome: 'asc' }
+      orderBy: { ordem: 'asc' }
     });
     res.json(ingredientes);
   } catch (error) {
@@ -371,6 +375,48 @@ app.patch("/api/pedidos/:id/status", async (req, res) => {
     res.json(upd);
   } catch (e) {
     res.status(400).json({ error: e.message });
+  }
+});
+
+// Rota para atualizar ordem dos itens
+app.put("/api/itens/reordenar", async (req, res) => {
+  try {
+    const { itens } = req.body; // Array de { id, ordem }
+    
+    await prisma.$transaction(
+      itens.map((item) =>
+        prisma.itemCardapio.update({
+          where: { id: item.id },
+          data: { ordem: item.ordem }
+        })
+      )
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao reordenar itens:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Rota para atualizar ordem dos ingredientes
+app.put("/api/ingredientes/reordenar", async (req, res) => {
+  try {
+    const { ingredientes } = req.body; // Array de { id, ordem }
+    
+    await prisma.$transaction(
+      ingredientes.map((ing) =>
+        prisma.ingrediente.update({
+          where: { id: ing.id },
+          data: { ordem: ing.ordem }
+        })
+      )
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao reordenar ingredientes:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

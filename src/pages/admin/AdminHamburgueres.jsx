@@ -1,6 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableItem } from "../../components/SortableItem";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
@@ -40,6 +55,59 @@ export default function AdminHamburgueres() {
     ingredienteId: "",
     quantidade: "",
   });
+
+  // Sensors para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Função para reordenar hambúrgueres
+  async function handleDragEndHamburgueres(event) {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setHamburgueres((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        
+        // Salvar nova ordem no backend
+        const updates = reordered.map((item, index) => ({
+          id: item.id,
+          ordem: index
+        }));
+        
+        fetch(`${API_URL}/api/itens/reordenar`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itens: updates })
+        }).catch(err => console.error('Erro ao salvar ordem:', err));
+        
+        return reordered;
+      });
+    }
+  }
+
+  // Função para reordenar ingredientes do form
+  function handleDragEndIngredientes(event) {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setForm((prev) => {
+        const oldIndex = prev.ingredientes.findIndex((_, idx) => idx === active.id);
+        const newIndex = prev.ingredientes.findIndex((_, idx) => idx === over.id);
+        
+        return {
+          ...prev,
+          ingredientes: arrayMove(prev.ingredientes, oldIndex, newIndex)
+        };
+      });
+    }
+  }
 
   // Recalcular totais quando ingredientes mudarem
   useEffect(() => {
@@ -770,30 +838,44 @@ export default function AdminHamburgueres() {
         </div>
 
         {form.ingredientes.length > 0 && (
-          <div style={styles.ingList}>
-            {form.ingredientes.map((ing, idx) => (
-              <div key={idx} style={styles.ingItem}>
-                <div>
-                  <strong>{ing.nome}</strong> — {ing.descricaoDetalhada} — R$ {ing.custo.toFixed(2)}
-                </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEndIngredientes}
+          >
+            <SortableContext
+              items={form.ingredientes.map((_, idx) => idx)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div style={styles.ingList}>
+                {form.ingredientes.map((ing, idx) => (
+                  <SortableItem key={idx} id={idx}>
+                    <div style={styles.ingItem}>
+                      <div>
+                        <span style={styles.dragHandle}>⋮⋮</span>
+                        <strong>{ing.nome}</strong> — {ing.descricaoDetalhada} — R$ {ing.custo.toFixed(2)}
+                      </div>
 
-                <div style={{ display: 'flex', gap: '5px' }}>
-                  <button
-                    style={styles.editIngBtn}
-                    onClick={() => editarQuantidadeIngrediente(idx)}
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    style={styles.removeIngBtn}
-                    onClick={() => removerIngrediente(idx)}
-                  >
-                    🗑️
-                  </button>
-                </div>
+                      <div style={{ display: 'flex', gap: '5px' }}>
+                        <button
+                          style={styles.editIngBtn}
+                          onClick={() => editarQuantidadeIngrediente(idx)}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          style={styles.removeIngBtn}
+                          onClick={() => removerIngrediente(idx)}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  </SortableItem>
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         )}
 
         <h3 style={{ marginTop: "30px" }}>Resumo do Produto</h3>
@@ -845,30 +927,44 @@ export default function AdminHamburgueres() {
 
       {hamburgueres.length === 0 && <p>Nenhum hambúrguer cadastrado.</p>}
 
-      {hamburgueres.map((h, i) => (
-        <div key={i} style={styles.itemCard}>
-          {h.img && <img src={h.img} style={styles.itemPhoto} alt="" />}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEndHamburgueres}
+      >
+        <SortableContext
+          items={hamburgueres.map(h => h.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {hamburgueres.map((h, i) => (
+            <SortableItem key={h.id} id={h.id}>
+              <div style={styles.itemCard}>
+                <span style={styles.dragHandle}>⋮⋮</span>
+                {h.img && <img src={h.img} style={styles.itemPhoto} alt="" />}
 
-          <div style={{ flex: 1 }}>
-            <strong>{h.nome}</strong> — R$ {Number(h.preco).toFixed(2)}
-            {h.selo && <span style={styles.seloTag}> • {h.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
-            <br />
-            <small>{h.descricao}</small>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <button style={styles.editBtn} onClick={() => editarHamburguer(h)}>
-              ✏️ Editar
-            </button>
-            <button style={styles.duplicateBtn} onClick={() => duplicarHamburguer(h)}>
-              📋 Duplicar
-            </button>
-            <button style={styles.deleteBtn} onClick={() => deletarHamburguer(h.id)}>
-              🗑️
-            </button>
-          </div>
-        </div>
-      ))}
+                <div style={{ flex: 1 }}>
+                  <strong>{h.nome}</strong> — R$ {Number(h.preco).toFixed(2)}
+                  {h.selo && <span style={styles.seloTag}> • {h.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
+                  <br />
+                  <small>{h.descricao}</small>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                  <button style={styles.editBtn} onClick={() => editarHamburguer(h)}>
+                    ✏️ Editar
+                  </button>
+                  <button style={styles.duplicateBtn} onClick={() => duplicarHamburguer(h)}>
+                    📋 Duplicar
+                  </button>
+                  <button style={styles.deleteBtn} onClick={() => deletarHamburguer(h.id)}>
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </SortableItem>
+          ))}
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
@@ -1073,5 +1169,12 @@ const styles = {
     color: "#F1B100",
     fontWeight: "bold",
     fontSize: "12px",
+  },
+  dragHandle: {
+    cursor: "grab",
+    marginRight: "10px",
+    color: "#999",
+    fontSize: "18px",
+    userSelect: "none",
   },
 };
