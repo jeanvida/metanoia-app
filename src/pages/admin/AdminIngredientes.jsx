@@ -429,35 +429,37 @@ export default function AdminIngredientes() {
         >
           {ingredientes.map((ing) => (
             <SortableItem key={ing.id} id={ing.id}>
-              <div style={styles.itemCard}>
-                <span style={styles.dragHandle}>⋮⋮</span>
-                <div style={{ flex: 1 }}>
-                  <strong>{ing.nome}</strong>
-                  <br />
-                  <small>
-                    Unidade: {getUnidadeLabel(ing.unidade)} | 
-                    Preço: R$ {Number(ing.precoPorUnidade).toFixed(4)}/{getUnidadeLabel(ing.unidade)}
-                    {ing.pesoMedioPorUnidade && (
-                      <> | 1 {getUnidadeLabel(ing.unidade)} ≈ {Number(ing.pesoMedioPorUnidade).toFixed(1)}g</>
-                    )}
-                    {ing.pesoPorPorcao && (
-                      <> | <strong style={{color: "#28a745"}}>Porção: {Number(ing.pesoPorPorcao).toFixed(1)}g</strong></>
-                    )}
-                    {ing.quantidadePorEmbalagem && (
-                      <> | Embalagem: {ing.quantidadePorEmbalagem} {getUnidadeLabel(ing.unidade)} = R$ {Number(ing.precoEmbalagem).toFixed(2)}</>
-                    )}
-                  </small>
+              {({ attributes, listeners }) => (
+                <div style={styles.itemCard}>
+                  <span style={styles.dragHandle} {...attributes} {...listeners}>⋮⋮</span>
+                  <div style={{ flex: 1 }}>
+                    <strong>{ing.nome}</strong>
+                    <br />
+                    <small>
+                      Unidade: {getUnidadeLabel(ing.unidade)} | 
+                      Preço: R$ {Number(ing.precoPorUnidade).toFixed(4)}/{getUnidadeLabel(ing.unidade)}
+                      {ing.pesoMedioPorUnidade && (
+                        <> | 1 {getUnidadeLabel(ing.unidade)} ≈ {Number(ing.pesoMedioPorUnidade).toFixed(1)}g</>
+                      )}
+                      {ing.pesoPorPorcao && (
+                        <> | <strong style={{color: "#28a745"}}>Porção: {Number(ing.pesoPorPorcao).toFixed(1)}g</strong></>
+                      )}
+                      {ing.quantidadePorEmbalagem && (
+                        <> | Embalagem: {ing.quantidadePorEmbalagem} {getUnidadeLabel(ing.unidade)} = R$ {Number(ing.precoEmbalagem).toFixed(2)}</>
+                      )}
+                    </small>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    <button style={styles.editBtn} onClick={() => editarIngrediente(ing)}>
+                      ✏️ Editar
+                    </button>
+                    <button style={styles.deleteBtn} onClick={() => deletarIngrediente(ing.id)}>
+                      🗑️
+                    </button>
+                  </div>
                 </div>
-                
-                <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                  <button style={styles.editBtn} onClick={() => editarIngrediente(ing)}>
-                    ✏️ Editar
-                  </button>
-                  <button style={styles.deleteBtn} onClick={() => deletarIngrediente(ing.id)}>
-                    🗑️
-                  </button>
-                </div>
-              </div>
+              )}
             </SortableItem>
           ))}
         </SortableContext>

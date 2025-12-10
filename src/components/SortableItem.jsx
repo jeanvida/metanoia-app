@@ -18,8 +18,8 @@ export function SortableItem({ id, children }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
+    <div ref={setNodeRef} style={style}>
+      {typeof children === 'function' ? children({ attributes, listeners }) : children}
     </div>
   );
 }

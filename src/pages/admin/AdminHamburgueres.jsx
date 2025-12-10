@@ -850,27 +850,29 @@ export default function AdminHamburgueres() {
               <div style={styles.ingList}>
                 {form.ingredientes.map((ing, idx) => (
                   <SortableItem key={idx} id={idx}>
-                    <div style={styles.ingItem}>
-                      <div>
-                        <span style={styles.dragHandle}>⋮⋮</span>
-                        <strong>{ing.nome}</strong> — {ing.descricaoDetalhada} — R$ {ing.custo.toFixed(2)}
-                      </div>
+                    {({ attributes, listeners }) => (
+                      <div style={styles.ingItem}>
+                        <div>
+                          <span style={styles.dragHandle} {...attributes} {...listeners}>⋮⋮</span>
+                          <strong>{ing.nome}</strong> — {ing.descricaoDetalhada} — R$ {ing.custo.toFixed(2)}
+                        </div>
 
-                      <div style={{ display: 'flex', gap: '5px' }}>
-                        <button
-                          style={styles.editIngBtn}
-                          onClick={() => editarQuantidadeIngrediente(idx)}
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          style={styles.removeIngBtn}
-                          onClick={() => removerIngrediente(idx)}
-                        >
-                          🗑️
-                        </button>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button
+                            style={styles.editIngBtn}
+                            onClick={() => editarQuantidadeIngrediente(idx)}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            style={styles.removeIngBtn}
+                            onClick={() => removerIngrediente(idx)}
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </SortableItem>
                 ))}
               </div>
@@ -938,29 +940,31 @@ export default function AdminHamburgueres() {
         >
           {hamburgueres.map((h, i) => (
             <SortableItem key={h.id} id={h.id}>
-              <div style={styles.itemCard}>
-                <span style={styles.dragHandle}>⋮⋮</span>
-                {h.img && <img src={h.img} style={styles.itemPhoto} alt="" />}
+              {({ attributes, listeners }) => (
+                <div style={styles.itemCard}>
+                  <span style={styles.dragHandle} {...attributes} {...listeners}>⋮⋮</span>
+                  {h.img && <img src={h.img} style={styles.itemPhoto} alt="" />}
 
-                <div style={{ flex: 1 }}>
-                  <strong>{h.nome}</strong> — R$ {Number(h.preco).toFixed(2)}
-                  {h.selo && <span style={styles.seloTag}> • {h.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
-                  <br />
-                  <small>{h.descricao}</small>
+                  <div style={{ flex: 1 }}>
+                    <strong>{h.nome}</strong> — R$ {Number(h.preco).toFixed(2)}
+                    {h.selo && <span style={styles.seloTag}> • {h.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
+                    <br />
+                    <small>{h.descricao}</small>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    <button style={styles.editBtn} onClick={() => editarHamburguer(h)}>
+                      ✏️ Editar
+                    </button>
+                    <button style={styles.duplicateBtn} onClick={() => duplicarHamburguer(h)}>
+                      📋 Duplicar
+                    </button>
+                    <button style={styles.deleteBtn} onClick={() => deletarHamburguer(h.id)}>
+                      🗑️
+                    </button>
+                  </div>
                 </div>
-                
-                <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                  <button style={styles.editBtn} onClick={() => editarHamburguer(h)}>
-                    ✏️ Editar
-                  </button>
-                  <button style={styles.duplicateBtn} onClick={() => duplicarHamburguer(h)}>
-                    📋 Duplicar
-                  </button>
-                  <button style={styles.deleteBtn} onClick={() => deletarHamburguer(h.id)}>
-                    🗑️
-                  </button>
-                </div>
-              </div>
+              )}
             </SortableItem>
           ))}
         </SortableContext>
