@@ -111,18 +111,21 @@ app.post("/api/init-categorias", async (req, res) => {
 
 // Rotas de itens
 app.post("/api/itens", async (req, res) => {
-  const { nome, descricao, preco, peso, img, categoriaId } = req.body;
+  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo } = req.body;
   try {
-    console.log("📝 Criando item:", { nome, preco, peso, categoriaId });
+    console.log("📝 Criando item:", { nome, preco, peso, categoriaId, selo });
     
     // 💡 Conversão segura dos dados
     const item = await prisma.itemCardapio.create({
       data: { 
         nome, 
-        descricao, 
+        descricao,
+        descricaoES,
+        descricaoEN,
         preco: parseFloat(preco) || 0, 
         peso: peso ? parseInt(peso) : null,  // Converter string para Int ou null
         img: img || null,
+        selo: selo || null,
         categoriaId
       },
       include: { categoria: true }
@@ -131,6 +134,51 @@ app.post("/api/itens", async (req, res) => {
     res.json(item);
   } catch (e) {
     console.error("❌ Erro ao criar item:", e.message);
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put("/api/itens/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo } = req.body;
+  try {
+    console.log("📝 Atualizando item:", id, { nome, preco, peso, selo });
+    
+    const item = await prisma.itemCardapio.update({
+      where: { id },
+      data: { 
+        nome, 
+        descricao,
+        descricaoES,
+        descricaoEN,
+        preco: parseFloat(preco) || 0, 
+        peso: peso ? parseInt(peso) : null,
+        img: img || null,
+        selo: selo || null,
+        categoriaId
+      },
+      include: { categoria: true }
+    });
+    console.log("✅ Item atualizado com sucesso:", item.id);
+    res.json(item);
+  } catch (e) {
+    console.error("❌ Erro ao atualizar item:", e.message);
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete("/api/itens/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    console.log("🗑️ Deletando item:", id);
+    
+    await prisma.itemCardapio.delete({
+      where: { id }
+    });
+    console.log("✅ Item deletado com sucesso:", id);
+    res.json({ success: true });
+  } catch (e) {
+    console.error("❌ Erro ao deletar item:", e.message);
     res.status(400).json({ error: e.message });
   }
 });

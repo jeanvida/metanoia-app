@@ -20,6 +20,7 @@ export default function AdminHamburgueres() {
 
   const [hamburgueres, setHamburgueres] = useState([]);
   const [categoriaId, setCategoriaId] = useState(null);
+  const [editandoId, setEditandoId] = useState(null);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -112,6 +113,57 @@ export default function AdminHamburgueres() {
     reader.readAsDataURL(file);
   }
 
+  function editarHamburguer(hamburguer) {
+    setEditandoId(hamburguer.id);
+    setForm({
+      nome: hamburguer.nome,
+      descricao: hamburguer.descricao || "",
+      descricaoES: hamburguer.descricaoES || "",
+      descricaoEN: hamburguer.descricaoEN || "",
+      peso: hamburguer.peso ? String(hamburguer.peso) : "",
+      preco: String(hamburguer.preco),
+      selo: hamburguer.selo || "",
+      ingredientes: hamburguer.ingredientes || [],
+      foto: hamburguer.img || "",
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicao() {
+    setEditandoId(null);
+    setForm({
+      nome: "",
+      descricao: "",
+      descricaoES: "",
+      descricaoEN: "",
+      peso: "",
+      preco: "",
+      selo: "",
+      ingredientes: [],
+      foto: "",
+    });
+  }
+
+  async function deletarHamburguer(id) {
+    if (!confirm('Tem certeza que deseja deletar este hambúrguer?')) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/itens/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Hambúrguer deletado com sucesso!');
+        setHamburgueres(prev => prev.filter(h => h.id !== id));
+      } else {
+        alert('Erro ao deletar hambúrguer');
+      }
+    } catch (error) {
+      console.error('Erro ao deletar:', error);
+      alert('Erro ao conectar com o servidor');
+    }
+  }
+
   function salvarHamburguer() {
     if (!form.nome || !form.descricao || !form.preco) {
       alert("Preencha nome, descrição e preço");
@@ -130,9 +182,12 @@ export default function AdminHamburgueres() {
     // Enviar para o backend
     const enviarBackend = async () => {
       try {
-        console.log("🚀 Enviando para:", `${API_URL}/api/itens`);
-        const response = await fetch(`${API_URL}/api/itens`, {
-          method: "POST",
+        const url = editandoId ? `${API_URL}/api/itens/${editandoId}` : `${API_URL}/api/itens`;
+        const method = editandoId ? "PUT" : "POST";
+        
+        console.log("🚀 Enviando para:", url, method);
+        const response = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             nome: form.nome,
@@ -152,8 +207,17 @@ export default function AdminHamburgueres() {
         console.log("Response body:", responseText);
 
         if (response.ok) {
-          alert("Hambúrguer cadastrado com sucesso!");
-          setHamburgueres((prev) => [...prev, novoHamburguer]);
+          const mensagem = editandoId ? "Hambúrguer atualizado com sucesso!" : "Hambúrguer cadastrado com sucesso!";
+          alert(mensagem);
+          
+          // Recarregar a lista
+          const recarregar = await fetch(`${API_URL}/api/itens?categoria=Hamburgueres`);
+          if (recarregar.ok) {
+            const data = await recarregar.json();
+            setHamburgueres(data);
+          }
+          
+          setEditandoId(null);
           setForm({
             nome: "",
             descricao: "",
@@ -315,9 +379,16 @@ export default function AdminHamburgueres() {
           <img src={form.foto} alt="preview" style={styles.preview} />
         )}
 
-        <button style={styles.saveBtn} onClick={salvarHamburguer}>
-          Salvar Hambúrguer
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button style={styles.saveBtn} onClick={salvarHamburguer}>
+            {editandoId ? 'Atualizar Hambúrguer' : 'Salvar Hambúrguer'}
+          </button>
+          {editandoId && (
+            <button style={styles.cancelBtn} onClick={cancelarEdicao}>
+              Cancelar
+            </button>
+          )}
+        </div>
       </div>
 
       <h2 style={styles.subtitle}>Hambúrgueres Cadastrados</h2>
@@ -328,10 +399,20 @@ export default function AdminHamburgueres() {
         <div key={i} style={styles.itemCard}>
           {h.img && <img src={h.img} style={styles.itemPhoto} alt="" />}
 
-          <div>
+          <div style={{ flex: 1 }}>
             <strong>{h.nome}</strong> — R$ {Number(h.preco).toFixed(2)}
+            {h.selo && <span style={styles.seloTag}> • {h.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
             <br />
             <small>{h.descricao}</small>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <button style={styles.editBtn} onClick={() => editarHamburguer(h)}>
+              ✏️ Editar
+            </button>
+            <button style={styles.deleteBtn} onClick={() => deletarHamburguer(h.id)}>
+              🗑️
+            </button>
           </div>
         </div>
       ))}
@@ -445,8 +526,19 @@ const styles = {
   },
   saveBtn: {
     marginTop: 14,
-    width: "100%",
+    flex: 1,
     background: "#000",
+    color: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    border: "none",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  cancelBtn: {
+    marginTop: 14,
+    flex: 1,
+    background: "#666",
     color: "#fff",
     padding: 12,
     borderRadius: 10,
@@ -462,6 +554,7 @@ const styles = {
     border: "2px solid #000",
     display: "flex",
     gap: 12,
+    alignItems: "center",
   },
   itemPhoto: {
     width: 80,
@@ -469,5 +562,29 @@ const styles = {
     borderRadius: 8,
     border: "2px solid #000",
     objectFit: "cover",
+  },
+  editBtn: {
+    background: "#000",
+    color: "#F1B100",
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "none",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  deleteBtn: {
+    background: "#c62828",
+    color: "#fff",
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "none",
+    cursor: "pointer",
+    fontSize: "16px",
+  },
+  seloTag: {
+    color: "#F1B100",
+    fontWeight: "bold",
+    fontSize: "12px",
   },
 };

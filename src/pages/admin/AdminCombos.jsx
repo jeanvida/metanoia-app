@@ -20,6 +20,7 @@ export default function AdminCombos() {
 
   const [combos, setCombos] = useState([]);
   const [categoriaId, setCategoriaId] = useState(null);
+  const [editandoId, setEditandoId] = useState(null);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -68,6 +69,55 @@ export default function AdminCombos() {
     setNovoItem({ nome: "", detalhe: "" });
   }
 
+  function editarCombo(combo) {
+    setEditandoId(combo.id);
+    setForm({
+      nome: combo.nome,
+      descricao: combo.descricao || "",
+      descricaoES: combo.descricaoES || "",
+      descricaoEN: combo.descricaoEN || "",
+      preco: String(combo.preco),
+      selo: combo.selo || "",
+      itens: combo.itens || [],
+      foto: combo.img || "",
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicao() {
+    setEditandoId(null);
+    setForm({
+      nome: "",
+      descricao: "",
+      descricaoES: "",
+      descricaoEN: "",
+      preco: "",
+      selo: "",
+      itens: [],
+      foto: "",
+    });
+  }
+
+  async function deletarCombo(id) {
+    if (!confirm('Tem certeza que deseja deletar este combo?')) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/itens/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Combo deletado com sucesso!');
+        setCombos(prev => prev.filter(c => c.id !== id));
+      } else {
+        alert('Erro ao deletar combo');
+      }
+    } catch (error) {
+      console.error('Erro ao deletar:', error);
+      alert('Erro ao conectar com o servidor');
+    }
+  }
+
   function salvarCombo() {
     if (!form.nome || !form.preco) {
       alert("Preencha nome e preço");
@@ -76,8 +126,11 @@ export default function AdminCombos() {
 
     const enviarBackend = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/itens`, {
-          method: "POST",
+        const url = editandoId ? `${API_URL}/api/itens/${editandoId}` : `${API_URL}/api/itens`;
+        const method = editandoId ? "PUT" : "POST";
+        
+        const response = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             nome: form.nome,
@@ -92,8 +145,16 @@ export default function AdminCombos() {
         });
 
         if (response.ok) {
-          alert("Combo cadastrado com sucesso!");
-          setCombos((prev) => [...prev, form]);
+          const mensagem = editandoId ? "Combo atualizado com sucesso!" : "Combo cadastrado com sucesso!";
+          alert(mensagem);
+          
+          const recarregar = await fetch(`${API_URL}/api/itens?categoria=Combos`);
+          if (recarregar.ok) {
+            const data = await recarregar.json();
+            setCombos(data);
+          }
+          
+          setEditandoId(null);
           setForm({
             nome: "",
             descricao: "",
@@ -216,9 +277,16 @@ export default function AdminCombos() {
           onChange={(e) => setForm({ ...form, foto: e.target.value })}
         />
 
-        <button style={styles.saveBtn} onClick={salvarCombo}>
-          Salvar Combo
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button style={styles.saveBtn} onClick={salvarCombo}>
+            {editandoId ? 'Atualizar Combo' : 'Salvar Combo'}
+          </button>
+          {editandoId && (
+            <button style={styles.cancelBtn} onClick={cancelarEdicao}>
+              Cancelar
+            </button>
+          )}
+        </div>
       </div>
 
       <h2 style={styles.subtitle}>Combos Cadastrados</h2>
@@ -227,9 +295,21 @@ export default function AdminCombos() {
 
       {combos.map((c, i) => (
         <div key={i} style={styles.itemCard}>
-          <strong>{c.nome}</strong> — R${c.preco}
-          <br />
-          <small>{c.descricao}</small>
+          <div style={{ flex: 1 }}>
+            <strong>{c.nome}</strong> — R${Number(c.preco).toFixed(2)}
+            {c.selo && <span style={styles.seloTag}> • {c.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
+            <br />
+            <small>{c.descricao}</small>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <button style={styles.editBtn} onClick={() => editarCombo(c)}>
+              ✏️ Editar
+            </button>
+            <button style={styles.deleteBtn} onClick={() => deletarCombo(c.id)}>
+              🗑️
+            </button>
+          </div>
         </div>
       ))}
     </div>
@@ -303,7 +383,7 @@ const styles = {
   },
   saveBtn: {
     marginTop: "20px",
-    width: "100%",
+    flex: 1,
     background: "#000",
     color: "#F1B100",
     padding: "12px",
@@ -312,5 +392,51 @@ const styles = {
     fontWeight: "bold",
     border: "none",
     cursor: "pointer",
+  },
+  cancelBtn: {
+    marginTop: "20px",
+    flex: 1,
+    background: "#666",
+    color: "#fff",
+    padding: "12px",
+    borderRadius: "10px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    border: "none",
+    cursor: "pointer",
+  },
+  itemCard: {
+    background: "#fff",
+    padding: "12px",
+    marginTop: "10px",
+    borderRadius: "10px",
+    border: "2px solid #000",
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+  },
+  editBtn: {
+    background: "#000",
+    color: "#F1B100",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "none",
+    fontWeight: "600",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  deleteBtn: {
+    background: "#c62828",
+    color: "#fff",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "16px",
+  },
+  seloTag: {
+    color: "#F1B100",
+    fontWeight: "bold",
+    fontSize: "12px",
   },
 };
