@@ -78,8 +78,11 @@ export default function Cardapio() {
             id: item.id,
             nome: item.nome,
             descricao: item.descricao,
+            descricaoES: item.descricaoES,
+            descricaoEN: item.descricaoEN,
             preco: Number(item.preco),
             img: item.img || "burger.png",
+            selo: item.selo,
           });
           return acc;
         }, { ...produtosFixos }); // Come a com os fixos para garantir as categorias
