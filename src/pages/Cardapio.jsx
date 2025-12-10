@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 // 1. Importando as fun  es de servi o que se comunicar o com o backend
 import { efetuarPagamentoCartao, efetuarPagamentoPix } from "../services/pagamentos";
 import { getRecaptchaToken, resetRecaptcha, SITE_KEY } from "../services/recaptcha";
+import { useLanguage } from "../contexts/LanguageContext";
 import { translations, getTranslation } from "../i18n/translations";
 
 // 1. Conectar ao backend: Definir uma constante API_URL no topo do arquivo
@@ -11,7 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL ||
     : "https://metanoia-app.onrender.com");
 
 export default function Cardapio() {
-  const [idioma, setIdioma] = useState("pt"); // Estado para idioma
+  const { idioma, setIdioma } = useLanguage(); // Usar contexto de idioma
   const t = (key) => getTranslation(idioma, key); // Função helper
   
   const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];

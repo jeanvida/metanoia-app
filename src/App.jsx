@@ -9,25 +9,29 @@ import AdminAcompanhamentos from "./pages/admin/AdminAcompanhamentos.jsx";
 import AdminBebidas from "./pages/admin/AdminBebidas.jsx";
 import AdminPedidos from "./pages/admin/AdminPedidos.jsx";
 
+import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
+import { getTranslation } from "./i18n/translations";
+
 import logo from "/logo.png";
 
 export default function App() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        backgroundColor: "#F1B100",
-        backgroundImage: `url("/bg.png")`,
-        backgroundRepeat: "repeat",
-        backgroundSize: "600px 600px",
-        backgroundPosition: "top left",
-      }}
-    >
-      <Routes>
-        {/* Admin - tela inteira */}
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/admin/hamburgueres" element={<AdminHamburgueres />} />
+    <LanguageProvider>
+      <div
+        style={{
+          minHeight: "100vh",
+          width: "100%",
+          backgroundColor: "#F1B100",
+          backgroundImage: `url("/bg.png")`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "600px 600px",
+          backgroundPosition: "top left",
+        }}
+      >
+        <Routes>
+          {/* Admin - tela inteira */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/hamburgueres" element={<AdminHamburgueres />} />
         <Route path="/admin/combos" element={<AdminCombos />} />
         <Route path="/admin/acompanhamentos" element={<AdminAcompanhamentos />} />
         <Route path="/admin/bebidas" element={<AdminBebidas />} />
@@ -40,11 +44,15 @@ export default function App() {
         </Route>
       </Routes>
     </div>
+    </LanguageProvider>
   );
 }
 
 /* Layout com header, nav e Outlet */
 function Layout() {
+  const { idioma } = useLanguage();
+  const t = (key) => getTranslation(idioma, key);
+
   return (
     <div style={styles.appWrapper}>
       <div style={styles.appContainer}>
@@ -53,8 +61,8 @@ function Layout() {
         </header>
 
         <nav style={styles.nav}>
-          <Link to="/" style={styles.navItem}>Início</Link>
-          <Link to="/cardapio" style={styles.navItem}>Cardápio</Link>
+          <Link to="/" style={styles.navItem}>{t("inicio")}</Link>
+          <Link to="/cardapio" style={styles.navItem}>{t("cardapio")}</Link>
         </nav>
 
         <main style={styles.main}>

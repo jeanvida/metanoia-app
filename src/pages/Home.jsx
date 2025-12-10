@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import { translations, getTranslation } from "../i18n/translations";
 
 export default function Home() {
-  const [idioma, setIdioma] = useState("pt");
+  const { idioma, setIdioma } = useLanguage();
   const t = (key) => getTranslation(idioma, key);
 
   const isMobile = window.innerWidth <= 768;

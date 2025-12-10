@@ -7,6 +7,7 @@
 html, body, #root {
   height: 100%;
   background-color: #F1B100 !important; /* fundo amarelo GLOBAL */
+  overflow-y: scroll; /* Força sempre mostrar barra de rolagem */
 }
 
 body {
