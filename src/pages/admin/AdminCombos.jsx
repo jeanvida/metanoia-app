@@ -68,14 +68,6 @@ export default function AdminCombos() {
     })
   );
 
-  // Sensors para drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   // Função para reordenar combos
   async function handleDragEndCombos(event) {
     const { active, over } = event;
