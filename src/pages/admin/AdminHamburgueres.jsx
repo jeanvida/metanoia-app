@@ -300,7 +300,7 @@ export default function AdminHamburgueres() {
           />
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div style={{ marginBottom: "15px", marginTop: "25px" }}>
           <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
             Selo (opcional)
           </label>

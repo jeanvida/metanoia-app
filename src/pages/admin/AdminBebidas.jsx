@@ -201,7 +201,7 @@ export default function AdminBebidas() {
           onChange={(e) => setForm({ ...form, preco: e.target.value })}
         />
 
-        <div style={{ marginBottom: "15px" }}>
+        <div style={{ marginBottom: "15px", marginTop: "25px" }}>
           <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
             Selo (opcional)
           </label>

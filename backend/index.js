@@ -148,9 +148,9 @@ app.put("/api/itens/:id", async (req, res) => {
       where: { id },
       data: { 
         nome, 
-        descricao,
-        descricaoES,
-        descricaoEN,
+        descricao: descricao || null,
+        descricaoES: descricaoES || null,
+        descricaoEN: descricaoEN || null,
         preco: parseFloat(preco) || 0, 
         peso: peso ? parseInt(peso) : null,
         img: img || null,
