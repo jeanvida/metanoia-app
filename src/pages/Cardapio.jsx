@@ -37,6 +37,7 @@ export default function Cardapio() {
   const [loadingPagamento, setLoadingPagamento] = useState(false);
   const [pixData, setPixData] = useState(null);
   const [mostrarFormCartao, setMostrarFormCartao] = useState(false);
+  const [mostrarRecaptcha, setMostrarRecaptcha] = useState(false);
   
   // Ponto 4: Hist rico de transa  es
   const [transacoes, setTransacoes] = useState([]);
@@ -112,9 +113,9 @@ export default function Cardapio() {
     carregarTransacoes();
   }, []); // Executa apenas na montagem
 
-  // Renderizar reCAPTCHA quando a aba de pagamento for aberta
+  // Renderizar reCAPTCHA quando mostrarRecaptcha for true
   useEffect(() => {
-    if (abaAtiva === "pagamento" && SITE_KEY && recaptchaRef.current && !recaptchaRef.current.hasChildNodes()) {
+    if (mostrarRecaptcha && SITE_KEY && recaptchaRef.current && !recaptchaRef.current.hasChildNodes()) {
       try {
         window.grecaptcha.render(recaptchaRef.current, {
           sitekey: SITE_KEY,
@@ -123,7 +124,7 @@ export default function Cardapio() {
         console.error("Erro ao renderizar reCAPTCHA:", error);
       }
     }
-  }, [abaAtiva]);
+  }, [mostrarRecaptcha]);
 
   // ===== Carrinho (L gica de localStorage mantida) =====
   const [carrinho, setCarrinho] = useState([]);
@@ -698,7 +699,10 @@ export default function Cardapio() {
               {!mostrarFormCartao ? (
                 <button 
                   style={styles.finalizarBtn} 
-                  onClick={() => setMostrarFormCartao(true)}
+                  onClick={() => {
+                    setMostrarFormCartao(true);
+                    setMostrarRecaptcha(true);
+                  }}
                 >
                   {t("pagarComCartao")}
                 </button>
@@ -761,7 +765,11 @@ export default function Cardapio() {
               <h3>{t("pix")}</h3>
               <button 
                 style={styles.finalizarBtn} 
-                onClick={pagarPIX}
+                onClick={() => {
+                  setMostrarRecaptcha(true);
+                  // Aguardar um pouco para o reCAPTCHA renderizar
+                  setTimeout(() => pagarPIX(), 100);
+                }}
                 disabled={loadingPagamento} // Desabilita durante o processamento
               >
                 {t("pagarComPix")}
@@ -769,7 +777,7 @@ export default function Cardapio() {
             </div>
 
             {/* reCAPTCHA v2 - Central para ambas as opcoes */}
-            {SITE_KEY && (
+            {mostrarRecaptcha && SITE_KEY && (
               <div style={styles.section}>
                 <div style={{ margin: '15px 0' }}>
                   <div ref={recaptchaRef}></div>
