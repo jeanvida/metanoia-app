@@ -131,15 +131,16 @@ export default function AdminHamburgueres() {
       // Se tem peso médio por unidade, calcular peso total
       if (ingredienteSelecionado.pesoMedioPorUnidade) {
         pesoGramas = quantidade * parseFloat(ingredienteSelecionado.pesoMedioPorUnidade);
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
       }
     } else if (ingredienteSelecionado.unidade === "kg") {
       // Ingrediente por peso
       if (ingredienteSelecionado.pesoPorPorcao) {
-        // Tem porção definida - usuario informa quantas porções quer (ex: 2 fatias)
+        // Tem porção definida - usuario informa quantas porções/fatias quer
         const pesoTotal = quantidade * parseFloat(ingredienteSelecionado.pesoPorPorcao);
         const pesoEmKg = pesoTotal / 1000;
         custo = pesoEmKg * parseFloat(ingredienteSelecionado.precoPorUnidade);
-        unidadeExibida = quantidade === 1 ? "porção" : "porções";
+        unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
         descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
         pesoGramas = pesoTotal;
       } else {
@@ -405,11 +406,20 @@ export default function AdminHamburgueres() {
             <option value="">Selecione um ingrediente</option>
             {ingredientesDisponiveis.map(ing => {
               const unidadeLabel = ing.unidade === 'kg' ? 'kg' : ing.unidade === 'litro' ? 'L' : 'un';
-              const pesoInfo = ing.pesoMedioPorUnidade ? ` [~${Number(ing.pesoMedioPorUnidade).toFixed(0)}g/un]` : '';
-              const porcaoInfo = ing.pesoPorPorcao ? ` [${Number(ing.pesoPorPorcao).toFixed(0)}g/porção]` : '';
+              
+              // Definir o tipo de porcionamento
+              let tipoLabel = '';
+              if (ing.unidade === 'unidade') {
+                tipoLabel = ing.pesoMedioPorUnidade ? ` - ${Number(ing.pesoMedioPorUnidade).toFixed(0)}g/un` : '';
+              } else if (ing.unidade === 'kg' && ing.pesoPorPorcao) {
+                tipoLabel = ` - ${Number(ing.pesoPorPorcao).toFixed(0)}g/fatia`;
+              } else if (ing.unidade === 'litro' && ing.pesoPorPorcao) {
+                tipoLabel = ` - ${Number(ing.pesoPorPorcao).toFixed(0)}ml/porção`;
+              }
+              
               return (
                 <option key={ing.id} value={ing.id}>
-                  {ing.nome} (R$ {Number(ing.precoPorUnidade).toFixed(4)}/{unidadeLabel}){pesoInfo}{porcaoInfo}
+                  {ing.nome}{tipoLabel}
                 </option>
               );
             })}
@@ -424,14 +434,16 @@ export default function AdminHamburgueres() {
                     if (!ing) return "Selecione ingrediente";
                     
                     if (ing.unidade === 'unidade') {
-                      return "Quantidade (unidades)";
+                      return ing.pesoMedioPorUnidade 
+                        ? `Quantidade (${Number(ing.pesoMedioPorUnidade).toFixed(0)}g cada)` 
+                        : "Quantidade";
                     } else if (ing.unidade === 'kg') {
                       return ing.pesoPorPorcao 
-                        ? `Nº de porções (cada ${Number(ing.pesoPorPorcao).toFixed(0)}g)` 
+                        ? `Nº de fatias/porções (${Number(ing.pesoPorPorcao).toFixed(0)}g cada)` 
                         : "Peso (gramas)";
                     } else if (ing.unidade === 'litro') {
                       return ing.pesoPorPorcao 
-                        ? `Nº de porções (cada ${Number(ing.pesoPorPorcao).toFixed(0)}ml)` 
+                        ? `Nº de porções (${Number(ing.pesoPorPorcao).toFixed(0)}ml cada)` 
                         : "Volume (ml)";
                     }
                     return "Quantidade";
@@ -439,7 +451,7 @@ export default function AdminHamburgueres() {
                 : "Selecione ingrediente"
             }
             type="number"
-            step={novoIngrediente.ingredienteId && ingredientesDisponiveis.find(i => i.id === novoIngrediente.ingredienteId)?.pesoPorPorcao ? "1" : "0.001"}
+            step="1"
             value={novoIngrediente.quantidade}
             onChange={(e) =>
               setNovoIngrediente({ ...novoIngrediente, quantidade: e.target.value })
