@@ -81,11 +81,21 @@ export default function AdminAcompanhamentos() {
           ordem: index
         }));
         
+        console.log('🔄 Salvando nova ordem:', updates);
+        
         fetch(`${API_URL}/api/itens/reordenar`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ itens: updates })
-        }).catch(err => console.error('Erro ao salvar ordem:', err));
+        })
+        .then(res => {
+          if (res.ok) {
+            console.log('✅ Ordem salva com sucesso!');
+          } else {
+            console.error('❌ Erro ao salvar ordem:', res.status);
+          }
+        })
+        .catch(err => console.error('❌ Erro ao salvar ordem:', err));
         
         return reordered;
       });
