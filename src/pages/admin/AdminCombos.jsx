@@ -231,33 +231,51 @@ export default function AdminCombos() {
   function editarCombo(combo) {
     setEditandoId(combo.id);
     
+    console.log("✏️ Editando combo:", combo.nome);
+    console.log("📦 combo.itensCombo recebido:", combo.itensCombo);
+    console.log("📦 Tipo de itensCombo:", typeof combo.itensCombo);
+    
     // Parse itensCombo se for string JSON
     let itensComboArray = [];
     try {
       if (typeof combo.itensCombo === 'string') {
+        console.log("🔄 Fazendo parse de string JSON");
         itensComboArray = JSON.parse(combo.itensCombo);
       } else if (Array.isArray(combo.itensCombo)) {
+        console.log("✅ itensCombo já é array");
         itensComboArray = combo.itensCombo;
+      } else if (combo.itensCombo && typeof combo.itensCombo === 'object') {
+        console.log("📋 itensCombo é objeto, tratando como array");
+        itensComboArray = [combo.itensCombo];
+      } else {
+        console.log("⚠️ itensCombo vazio ou inválido");
       }
     } catch (error) {
-      console.error("Erro ao fazer parse de itensCombo:", error);
+      console.error("❌ Erro ao fazer parse de itensCombo:", error);
       itensComboArray = [];
     }
+    
+    console.log("📦 itensComboArray após parse:", itensComboArray);
     
     // Reconstruir itensCombo se existirem
     const itensComboReconstruidos = itensComboArray.map(item => {
       let itemOriginal;
       let tipoNome = "";
       
+      console.log("🔍 Processando item:", item);
+      
       if (item.tipo === "hamburguer") {
         itemOriginal = hamburgueres.find(h => h.id === item.itemId);
         tipoNome = "Hambúrguer";
+        console.log("🍔 Hambúrguer encontrado:", itemOriginal);
       } else if (item.tipo === "acompanhamento") {
         itemOriginal = acompanhamentos.find(a => a.id === item.itemId);
         tipoNome = "Acompanhamento";
+        console.log("🍟 Acompanhamento encontrado:", itemOriginal);
       } else if (item.tipo === "bebida") {
         itemOriginal = bebidas.find(b => b.id === item.itemId);
         tipoNome = "Bebida";
+        console.log("🥤 Bebida encontrada:", itemOriginal);
       }
       
       return {
@@ -269,6 +287,8 @@ export default function AdminCombos() {
       };
     });
     
+    console.log("✅ Itens reconstruídos:", itensComboReconstruidos);
+    
     setForm({
       nome: combo.nome,
       descricao: combo.descricao || "",
@@ -279,6 +299,7 @@ export default function AdminCombos() {
       itensCombo: itensComboReconstruidos,
     });
     setPrecoFinal(String(combo.preco));
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -558,7 +579,7 @@ export default function AdminCombos() {
         
         <div style={styles.resumoBox}>
           <div style={styles.resumoItem}>
-            <strong>Total dos Itens:</strong> R$ {form.itensCombo.reduce((sum, item) => sum + item.preco, 0).toFixed(2)}
+            <strong>Total dos Itens:</strong> R$ {form.itensCombo.reduce((sum, item) => sum + (Number(item.preco) || 0), 0).toFixed(2)}
           </div>
           
           <div style={{ ...styles.resumoItem, backgroundColor: "#fff3cd", padding: "10px", borderRadius: "8px", marginTop: "10px" }}>
