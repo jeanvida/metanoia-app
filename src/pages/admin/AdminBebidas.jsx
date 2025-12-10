@@ -79,6 +79,18 @@ export default function AdminBebidas() {
     });
   }
 
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm((prev) => ({ ...prev, foto: reader.result }));
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   async function deletarBebida(id) {
     if (!confirm('Tem certeza que deseja deletar esta bebida?')) return;
     
@@ -120,7 +132,7 @@ export default function AdminBebidas() {
             descricaoEN: form.descricaoEN,
             preco: Number(form.preco),
             selo: form.selo || null,
-            // img: form.foto || "", // Remover base64 muito grande
+            img: form.foto || "",
             categoriaId: categoriaId || 4,
           }),
         });
@@ -216,12 +228,14 @@ export default function AdminBebidas() {
           </select>
         </div>
 
-        <input
-          style={styles.input}
-          placeholder="URL da foto"
-          value={form.foto}
-          onChange={(e) => setForm({ ...form, foto: e.target.value })}
-        />
+        <label style={styles.fileLabel}>
+          Anexar foto (jpg/png)
+          <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+        </label>
+
+        {form.foto && (
+          <img src={form.foto} alt="preview" style={styles.preview} />
+        )}
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button style={styles.saveBtn} onClick={salvar}>
@@ -384,5 +398,24 @@ const styles = {
     color: "#F1B100",
     fontWeight: "bold",
     fontSize: "12px",
+  },
+  fileLabel: {
+    display: "block",
+    background: "#000",
+    color: "#F1B100",
+    padding: "10px",
+    borderRadius: 10,
+    marginTop: 10,
+    cursor: "pointer",
+    textAlign: "center",
+    fontWeight: 700,
+  },
+  preview: {
+    width: 120,
+    height: 120,
+    marginTop: 10,
+    borderRadius: 10,
+    border: "2px solid #000",
+    objectFit: "cover",
   },
 };

@@ -1,6 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableItem } from "../../components/SortableItem";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
@@ -26,16 +41,79 @@ export default function AdminCombos() {
     descricao: "",
     descricaoES: "",
     descricaoEN: "",
-    preco: "",
     selo: "",
-    itens: [],
     foto: "",
+    itensCombo: [],
   });
 
-  const [novoItem, setNovoItem] = useState({
-    nome: "",
-    detalhe: "",
+  const [precoSugerido, setPrecoSugerido] = useState(0);
+  const [precoFinal, setPrecoFinal] = useState("");
+
+  // Itens disponíveis para selecionar
+  const [hamburgueres, setHamburgueres] = useState([]);
+  const [acompanhamentos, setAcompanhamentos] = useState([]);
+  const [bebidas, setBebidas] = useState([]);
+
+  // Item sendo adicionado ao combo
+  const [novoItemCombo, setNovoItemCombo] = useState({
+    tipo: "",
+    itemId: "",
   });
+
+  // Sensors para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Sensors para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Função para reordenar combos
+  async function handleDragEndCombos(event) {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setCombos((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        
+        const updates = reordered.map((item, index) => ({
+          id: item.id,
+          ordem: index
+        }));
+        
+        fetch(`${API_URL}/api/itens/reordenar`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itens: updates })
+        }).catch(err => console.error('Erro ao salvar ordem:', err));
+        
+        return reordered;
+      });
+    }
+  }
+
+  // Recalcular preço sugerido quando itens do combo mudarem
+  useEffect(() => {
+    if (form.itensCombo.length > 0) {
+      const totalPreco = form.itensCombo.reduce((sum, item) => sum + item.preco, 0);
+      // Aplicar desconto de 10% no combo
+      const sugerido = totalPreco * 0.9;
+      setPrecoSugerido(sugerido);
+    } else {
+      setPrecoSugerido(0);
+    }
+  }, [form.itensCombo]);
 
   useEffect(() => {
     const inicializar = async () => {
@@ -51,6 +129,27 @@ export default function AdminCombos() {
           const data = await response.json();
           setCombos(data);
         }
+
+        // Carregar hambúrgueres disponíveis
+        const hambResponse = await fetch(`${API_URL}/api/itens?categoria=Hambúrgueres`);
+        if (hambResponse.ok) {
+          const hambData = await hambResponse.json();
+          setHamburgueres(hambData);
+        }
+
+        // Carregar acompanhamentos disponíveis
+        const acompResponse = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos`);
+        if (acompResponse.ok) {
+          const acompData = await acompResponse.json();
+          setAcompanhamentos(acompData);
+        }
+
+        // Carregar bebidas disponíveis
+        const bebResponse = await fetch(`${API_URL}/api/itens?categoria=Bebidas`);
+        if (bebResponse.ok) {
+          const bebData = await bebResponse.json();
+          setBebidas(bebData);
+        }
       } catch (error) {
         console.error("Erro ao inicializar:", error);
       }
@@ -58,29 +157,100 @@ export default function AdminCombos() {
     inicializar();
   }, []);
 
-  function adicionarItem() {
-    if (!novoItem.nome) return;
+  function adicionarItemAoCombo() {
+    if (!novoItemCombo.tipo || !novoItemCombo.itemId) {
+      alert("Selecione o tipo e o item");
+      return;
+    }
 
-    setForm({
-      ...form,
-      itens: [...form.itens, novoItem],
+    let itemSelecionado;
+    let tipoNome = "";
+
+    if (novoItemCombo.tipo === "hamburguer") {
+      itemSelecionado = hamburgueres.find(h => h.id === novoItemCombo.itemId);
+      tipoNome = "Hambúrguer";
+    } else if (novoItemCombo.tipo === "acompanhamento") {
+      itemSelecionado = acompanhamentos.find(a => a.id === novoItemCombo.itemId);
+      tipoNome = "Acompanhamento";
+    } else if (novoItemCombo.tipo === "bebida") {
+      itemSelecionado = bebidas.find(b => b.id === novoItemCombo.itemId);
+      tipoNome = "Bebida";
+    }
+
+    if (!itemSelecionado) return;
+
+    setForm((prev) => ({
+      ...prev,
+      itensCombo: [...prev.itensCombo, {
+        itemId: itemSelecionado.id,
+        tipo: novoItemCombo.tipo,
+        tipoNome: tipoNome,
+        nome: itemSelecionado.nome,
+        preco: itemSelecionado.preco,
+      }],
+    }));
+
+    setNovoItemCombo({ tipo: "", itemId: "" });
+  }
+
+  function removerItemDoCombo(index) {
+    setForm((prev) => {
+      const lista = [...prev.itensCombo];
+      lista.splice(index, 1);
+      return { ...prev, itensCombo: lista };
     });
+  }
 
-    setNovoItem({ nome: "", detalhe: "" });
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm((prev) => ({ ...prev, foto: reader.result }));
+    };
+
+    reader.readAsDataURL(file);
   }
 
   function editarCombo(combo) {
     setEditandoId(combo.id);
+    
+    // Reconstruir itensCombo se existirem
+    const itensComboReconstruidos = combo.itensCombo?.map(item => {
+      let itemOriginal;
+      let tipoNome = "";
+      
+      if (item.tipo === "hamburguer") {
+        itemOriginal = hamburgueres.find(h => h.id === item.itemId);
+        tipoNome = "Hambúrguer";
+      } else if (item.tipo === "acompanhamento") {
+        itemOriginal = acompanhamentos.find(a => a.id === item.itemId);
+        tipoNome = "Acompanhamento";
+      } else if (item.tipo === "bebida") {
+        itemOriginal = bebidas.find(b => b.id === item.itemId);
+        tipoNome = "Bebida";
+      }
+      
+      return {
+        itemId: item.itemId,
+        tipo: item.tipo,
+        tipoNome: tipoNome,
+        nome: itemOriginal?.nome || item.nome,
+        preco: itemOriginal?.preco || item.preco,
+      };
+    }) || [];
+    
     setForm({
       nome: combo.nome,
       descricao: combo.descricao || "",
       descricaoES: combo.descricaoES || "",
       descricaoEN: combo.descricaoEN || "",
-      preco: String(combo.preco),
       selo: combo.selo || "",
-      itens: combo.itens || [],
       foto: combo.img || "",
+      itensCombo: itensComboReconstruidos,
     });
+    setPrecoFinal(String(combo.preco));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -91,11 +261,12 @@ export default function AdminCombos() {
       descricao: "",
       descricaoES: "",
       descricaoEN: "",
-      preco: "",
       selo: "",
-      itens: [],
       foto: "",
+      itensCombo: [],
     });
+    setPrecoFinal("");
+    setPrecoSugerido(0);
   }
 
   async function deletarCombo(id) {
@@ -118,9 +289,50 @@ export default function AdminCombos() {
     }
   }
 
+  async function duplicarCombo(combo) {
+    if (!confirm(`Duplicar "${combo.nome}"?`)) return;
+    
+    try {
+      const dadosDuplicados = {
+        nome: `${combo.nome} - Cópia`,
+        descricao: combo.descricao || "",
+        descricaoES: combo.descricaoES || "",
+        descricaoEN: combo.descricaoEN || "",
+        preco: combo.preco,
+        img: combo.img || "",
+        selo: combo.selo || "",
+        categoriaId: categoriaId,
+        itensCombo: combo.itensCombo || []
+      };
+
+      const response = await fetch(`${API_URL}/api/itens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dadosDuplicados),
+      });
+
+      if (response.ok) {
+        alert('Combo duplicado com sucesso!');
+        
+        const recarregar = await fetch(`${API_URL}/api/itens?categoria=Combos`);
+        if (recarregar.ok) {
+          const data = await recarregar.json();
+          setCombos(data);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('Erro ao duplicar:', errorText);
+        alert('Erro ao duplicar combo');
+      }
+    } catch (error) {
+      console.error('Erro ao duplicar:', error);
+      alert('Erro ao conectar com o servidor');
+    }
+  }
+
   function salvarCombo() {
-    if (!form.nome || !form.preco) {
-      alert("Preencha nome e preço");
+    if (!form.nome || !form.descricao || !precoFinal) {
+      alert("Preencha nome, descrição e preço final");
       return;
     }
 
@@ -135,12 +347,13 @@ export default function AdminCombos() {
           body: JSON.stringify({
             nome: form.nome,
             descricao: form.descricao,
-            descricaoES: form.descricaoES,
-            descricaoEN: form.descricaoEN,
-            preco: Number(form.preco),
+            descricaoES: form.descricaoES || null,
+            descricaoEN: form.descricaoEN || null,
+            preco: Number(precoFinal),
             selo: form.selo || null,
-            // img: form.foto || "", // Remover base64 muito grande
-            categoriaId: categoriaId || 2,
+            img: form.foto || "",
+            categoriaId: categoriaId,
+            itensCombo: form.itensCombo
           }),
         });
 
@@ -160,11 +373,13 @@ export default function AdminCombos() {
             descricao: "",
             descricaoES: "",
             descricaoEN: "",
-            preco: "",
             selo: "",
-            itens: [],
             foto: "",
+            itensCombo: [],
           });
+          setPrecoFinal("");
+          setPrecoSugerido(0);
+          setNovoItemCombo({ tipo: "", itemId: "" });
         } else {
           const errorData = await response.json();
           alert(`Erro ao cadastrar: ${errorData.error || "Tente novamente"}`);
@@ -179,12 +394,12 @@ export default function AdminCombos() {
   }
 
   return (
-       <div style={{ ...styles.container, position: "relative" }}>
-               <VoltarBtn />
+    <div style={{ ...styles.container, position: "relative" }}>
+      <VoltarBtn />
       <h1 style={styles.title}>Gerenciar Combos</h1>
 
       <div style={styles.card}>
-        <h2 style={styles.subtitle}>Adicionar Combo</h2>
+        <h2 style={styles.subtitle}>Adicionar / Editar Combo</h2>
 
         <input
           style={styles.input}
@@ -195,7 +410,7 @@ export default function AdminCombos() {
 
         <textarea
           style={styles.textarea}
-          placeholder="Descrição"
+          placeholder="Descrição (PT)"
           value={form.descricao}
           onChange={(e) => setForm({ ...form, descricao: e.target.value })}
         />
@@ -214,13 +429,6 @@ export default function AdminCombos() {
           onChange={(e) => setForm({ ...form, descricaoEN: e.target.value })}
         />
 
-        <input
-          style={styles.input}
-          placeholder="Preço (R$)"
-          value={form.preco}
-          onChange={(e) => setForm({ ...form, preco: e.target.value })}
-        />
-
         <div style={{ marginBottom: "15px", marginTop: "25px" }}>
           <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
             Selo (opcional)
@@ -236,48 +444,105 @@ export default function AdminCombos() {
           </select>
         </div>
 
-        <h3>Itens do Combo</h3>
+        <label style={styles.fileLabel}>
+          Anexar foto (jpg/png)
+          <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+        </label>
 
+        {form.foto && (
+          <img src={form.foto} alt="preview" style={styles.preview} />
+        )}
+
+        <h3 style={{ marginTop: "30px" }}>Itens do Combo</h3>
         <div style={styles.row}>
-          <input
+          <select
             style={styles.inputSmall}
-            placeholder="Item"
-            value={novoItem.nome}
-            onChange={(e) =>
-              setNovoItem({ ...novoItem, nome: e.target.value })
-            }
-          />
+            value={novoItemCombo.tipo}
+            onChange={(e) => setNovoItemCombo({ ...novoItemCombo, tipo: e.target.value, itemId: "" })}
+          >
+            <option value="">Selecione o tipo</option>
+            <option value="hamburguer">Hambúrguer</option>
+            <option value="acompanhamento">Acompanhamento</option>
+            <option value="bebida">Bebida</option>
+          </select>
 
-          <input
+          <select
             style={styles.inputSmall}
-            placeholder="Detalhe"
-            value={novoItem.detalhe}
-            onChange={(e) =>
-              setNovoItem({ ...novoItem, detalhe: e.target.value })
-            }
-          />
+            value={novoItemCombo.itemId}
+            onChange={(e) => setNovoItemCombo({ ...novoItemCombo, itemId: e.target.value })}
+            disabled={!novoItemCombo.tipo}
+          >
+            <option value="">Selecione o item</option>
+            {novoItemCombo.tipo === "hamburguer" && hamburgueres.map(h => (
+              <option key={h.id} value={h.id}>
+                {h.nome} - R$ {Number(h.preco).toFixed(2)}
+              </option>
+            ))}
+            {novoItemCombo.tipo === "acompanhamento" && acompanhamentos.map(a => (
+              <option key={a.id} value={a.id}>
+                {a.nome} - R$ {Number(a.preco).toFixed(2)}
+              </option>
+            ))}
+            {novoItemCombo.tipo === "bebida" && bebidas.map(b => (
+              <option key={b.id} value={b.id}>
+                {b.nome} - R$ {Number(b.preco).toFixed(2)}
+              </option>
+            ))}
+          </select>
 
-          <button style={styles.buttonSmall} onClick={adicionarItem}>
-            +
+          <button style={styles.addIngBtn} onClick={adicionarItemAoCombo}>
+            Adicionar
           </button>
         </div>
 
-        <ul>
-          {form.itens.map((item, i) => (
-            <li key={i}>
-              {item.nome} — {item.detalhe}
-            </li>
-          ))}
-        </ul>
+        {form.itensCombo.length > 0 && (
+          <div style={styles.ingList}>
+            {form.itensCombo.map((item, idx) => (
+              <div key={idx} style={styles.ingItem}>
+                <div>
+                  <strong>{item.tipoNome}:</strong> {item.nome} — R$ {Number(item.preco).toFixed(2)}
+                </div>
+                <button
+                  style={styles.removeIngBtn}
+                  onClick={() => removerItemDoCombo(idx)}
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
-        <input
-          style={styles.input}
-          placeholder="URL da foto"
-          value={form.foto}
-          onChange={(e) => setForm({ ...form, foto: e.target.value })}
-        />
+        <h3 style={{ marginTop: "30px" }}>Resumo do Combo</h3>
+        
+        <div style={styles.resumoBox}>
+          <div style={styles.resumoItem}>
+            <strong>Total dos Itens:</strong> R$ {form.itensCombo.reduce((sum, item) => sum + item.preco, 0).toFixed(2)}
+          </div>
+          
+          <div style={{ ...styles.resumoItem, backgroundColor: "#fff3cd", padding: "10px", borderRadius: "8px", marginTop: "10px" }}>
+            <strong>Preço Sugerido (10% desconto):</strong> 
+            <span style={{ fontSize: "20px", color: "#856404", marginLeft: "10px" }}>
+              R$ {precoSugerido.toFixed(2)}
+            </span>
+          </div>
+          
+          <div style={{ marginTop: "15px" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+              Preço Final ao Cliente (R$) *
+            </label>
+            <input
+              style={{ ...styles.input, fontSize: "18px", fontWeight: "bold" }}
+              placeholder="Digite o preço de venda"
+              type="number"
+              step="0.01"
+              value={precoFinal}
+              onChange={(e) => setPrecoFinal(e.target.value)}
+            />
+          </div>
+        </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <button style={styles.saveBtn} onClick={salvarCombo}>
             {editandoId ? 'Atualizar Combo' : 'Salvar Combo'}
           </button>
@@ -293,25 +558,46 @@ export default function AdminCombos() {
 
       {combos.length === 0 && <p>Nenhum combo cadastrado.</p>}
 
-      {combos.map((c, i) => (
-        <div key={i} style={styles.itemCard}>
-          <div style={{ flex: 1 }}>
-            <strong>{c.nome}</strong> — R${Number(c.preco).toFixed(2)}
-            {c.selo && <span style={styles.seloTag}> • {c.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
-            <br />
-            <small>{c.descricao}</small>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <button style={styles.editBtn} onClick={() => editarCombo(c)}>
-              ✏️ Editar
-            </button>
-            <button style={styles.deleteBtn} onClick={() => deletarCombo(c.id)}>
-              🗑️
-            </button>
-          </div>
-        </div>
-      ))}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEndCombos}
+      >
+        <SortableContext
+          items={combos.map(c => c.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {combos.map((c, i) => (
+            <SortableItem key={c.id} id={c.id}>
+              {({ attributes, listeners }) => (
+                <div style={styles.itemCard}>
+                  <span style={styles.dragHandle} {...attributes} {...listeners}>⋮⋮</span>
+                  {c.img && <img src={c.img} style={styles.itemPhoto} alt="" />}
+
+                  <div style={{ flex: 1 }}>
+                    <strong>{c.nome}</strong> — R$ {Number(c.preco).toFixed(2)}
+                    {c.selo && <span style={styles.seloTag}> • {c.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
+                    <br />
+                    <small>{c.descricao}</small>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    <button style={styles.editBtn} onClick={() => editarCombo(c)}>
+                      ✏️ Editar
+                    </button>
+                    <button style={styles.duplicateBtn} onClick={() => duplicarCombo(c)}>
+                      📋 Duplicar
+                    </button>
+                    <button style={styles.deleteBtn} onClick={() => deletarCombo(c.id)}>
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              )}
+            </SortableItem>
+          ))}
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
@@ -323,105 +609,169 @@ const styles = {
     padding: "60px 20px 20px 20px",
   },
   title: {
-    fontSize: "32px",
-    fontWeight: "bold",
+    fontSize: 28,
+    fontWeight: "700",
     textAlign: "center",
     marginBottom: "20px",
   },
   subtitle: {
     marginTop: 0,
-    fontWeight: "bold",
+    fontWeight: "700",
   },
   card: {
     background: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    marginBottom: "30px",
+    padding: 18,
+    borderRadius: 12,
+    marginBottom: 24,
     marginTop: "30px",
-  },
-  itemCard: {
-    background: "#fff",
-    padding: "15px",
-    marginTop: "10px",
-    borderRadius: "10px",
     border: "2px solid #000",
   },
   input: {
     width: "100%",
-    padding: "10px",
-    marginTop: "10px",
-    borderRadius: "10px",
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 8,
     border: "2px solid #000",
   },
   textarea: {
     width: "100%",
-    padding: "10px",
-    marginTop: "10px",
-    borderRadius: "10px",
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 8,
     border: "2px solid #000",
-    minHeight: "70px",
+    minHeight: 70,
   },
   row: {
     display: "flex",
-    gap: "10px",
-    marginTop: "10px",
+    gap: 10,
+    marginTop: 10,
   },
   inputSmall: {
     flex: 1,
-    padding: "10px",
-    borderRadius: "10px",
+    padding: 10,
+    borderRadius: 8,
     border: "2px solid #000",
   },
-  buttonSmall: {
+  addIngBtn: {
     background: "#000",
     color: "#F1B100",
     padding: "10px 14px",
-    borderRadius: "10px",
+    borderRadius: 8,
     border: "none",
     cursor: "pointer",
-    fontWeight: "bold",
+    fontWeight: "700",
   },
-  saveBtn: {
-    marginTop: "20px",
-    flex: 1,
+  ingList: {
+    marginTop: 10,
+    background: "#fff",
+    padding: 10,
+    borderRadius: 8,
+    border: "1px solid #ddd",
+  },
+  ingItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: 6,
+    padding: "8px",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "6px",
+    alignItems: "center",
+  },
+  removeIngBtn: {
+    background: "#c62828",
+    color: "#fff",
+    padding: "6px 10px",
+    borderRadius: 6,
+    border: "none",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  resumoBox: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    border: "2px solid #000",
+  },
+  resumoItem: {
+    marginBottom: 8,
+    fontSize: "16px",
+  },
+  fileLabel: {
+    display: "block",
     background: "#000",
     color: "#F1B100",
-    padding: "12px",
-    borderRadius: "10px",
-    fontSize: "16px",
-    fontWeight: "bold",
+    padding: "10px",
+    borderRadius: 10,
+    marginTop: 10,
+    cursor: "pointer",
+    textAlign: "center",
+    fontWeight: 700,
+  },
+  preview: {
+    width: 120,
+    height: 120,
+    marginTop: 10,
+    borderRadius: 10,
+    border: "2px solid #000",
+    objectFit: "cover",
+  },
+  saveBtn: {
+    marginTop: 14,
+    flex: 1,
+    background: "#000",
+    color: "#fff",
+    padding: 12,
+    borderRadius: 10,
     border: "none",
+    fontWeight: 700,
     cursor: "pointer",
   },
   cancelBtn: {
-    marginTop: "20px",
+    marginTop: 14,
     flex: 1,
     background: "#666",
     color: "#fff",
-    padding: "12px",
-    borderRadius: "10px",
-    fontSize: "16px",
-    fontWeight: "bold",
+    padding: 12,
+    borderRadius: 10,
     border: "none",
+    fontWeight: 700,
     cursor: "pointer",
   },
   itemCard: {
     background: "#fff",
-    padding: "12px",
-    marginTop: "10px",
-    borderRadius: "10px",
+    padding: 12,
+    marginTop: 10,
+    borderRadius: 10,
     border: "2px solid #000",
     display: "flex",
-    gap: "12px",
+    gap: 12,
     alignItems: "center",
+  },
+  itemPhoto: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    border: "2px solid #000",
+    objectFit: "cover",
   },
   editBtn: {
     background: "#000",
     color: "#F1B100",
     padding: "8px 12px",
-    borderRadius: "8px",
+    borderRadius: 8,
     border: "none",
-    fontWeight: "600",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  duplicateBtn: {
+    background: "#1976d2",
+    color: "#fff",
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "none",
+    fontWeight: 600,
     cursor: "pointer",
     fontSize: "14px",
   },
@@ -429,7 +779,7 @@ const styles = {
     background: "#c62828",
     color: "#fff",
     padding: "8px 12px",
-    borderRadius: "8px",
+    borderRadius: 8,
     border: "none",
     cursor: "pointer",
     fontSize: "16px",
@@ -438,5 +788,12 @@ const styles = {
     color: "#F1B100",
     fontWeight: "bold",
     fontSize: "12px",
+  },
+  dragHandle: {
+    cursor: "grab",
+    marginRight: "10px",
+    color: "#999",
+    fontSize: "18px",
+    userSelect: "none",
   },
 };
