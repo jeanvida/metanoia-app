@@ -423,7 +423,10 @@ export default function Cardapio() {
       </div>
 
       {/* Produtos */}
-      <div style={styles.produtos}>
+      <div style={{
+        ...styles.produtos,
+        ...(produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 1 ? styles.produtosUnico : {})
+      }}>
         {produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 0 ? (
           <p style={{ textAlign: "center" }}>
             Nenhum item nesta categoria ainda.
@@ -950,6 +953,11 @@ const styles = {
     gap: isMobile ? "15px" : "20px",
     maxWidth: "1200px",
     margin: "0 auto"
+  },
+  produtosUnico: {
+    gridTemplateColumns: "1fr",
+    maxWidth: isMobile ? "100%" : "550px",
+    justifyItems: "center"
   },
   card: { 
     backgroundColor: "#fff", 
