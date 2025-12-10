@@ -108,7 +108,10 @@ export default function AdminCombos() {
   // Recalcular preço sugerido quando itens do combo mudarem
   useEffect(() => {
     if (form.itensCombo.length > 0) {
-      const totalPreco = form.itensCombo.reduce((sum, item) => sum + item.preco, 0);
+      const totalPreco = form.itensCombo.reduce((sum, item) => {
+        const preco = Number(item.preco) || 0;
+        return sum + preco;
+      }, 0);
       // Aplicar desconto de 10% no combo
       const sugerido = totalPreco * 0.9;
       setPrecoSugerido(sugerido);
@@ -179,7 +182,17 @@ export default function AdminCombos() {
       tipoNome = "Bebida";
     }
 
-    if (!itemSelecionado) return;
+    if (!itemSelecionado) {
+      alert("Item não encontrado");
+      return;
+    }
+
+    // Validar se o item tem os dados necessários
+    if (!itemSelecionado.nome || itemSelecionado.preco === undefined || itemSelecionado.preco === null) {
+      alert("Item sem dados completos (nome ou preço ausente)");
+      console.error("Item incompleto:", itemSelecionado);
+      return;
+    }
 
     setForm((prev) => ({
       ...prev,
@@ -188,7 +201,7 @@ export default function AdminCombos() {
         tipo: novoItemCombo.tipo,
         tipoNome: tipoNome,
         nome: itemSelecionado.nome,
-        preco: itemSelecionado.preco,
+        preco: Number(itemSelecionado.preco) || 0,
       }],
     }));
 
@@ -218,8 +231,21 @@ export default function AdminCombos() {
   function editarCombo(combo) {
     setEditandoId(combo.id);
     
+    // Parse itensCombo se for string JSON
+    let itensComboArray = [];
+    try {
+      if (typeof combo.itensCombo === 'string') {
+        itensComboArray = JSON.parse(combo.itensCombo);
+      } else if (Array.isArray(combo.itensCombo)) {
+        itensComboArray = combo.itensCombo;
+      }
+    } catch (error) {
+      console.error("Erro ao fazer parse de itensCombo:", error);
+      itensComboArray = [];
+    }
+    
     // Reconstruir itensCombo se existirem
-    const itensComboReconstruidos = combo.itensCombo?.map(item => {
+    const itensComboReconstruidos = itensComboArray.map(item => {
       let itemOriginal;
       let tipoNome = "";
       
@@ -239,9 +265,9 @@ export default function AdminCombos() {
         tipo: item.tipo,
         tipoNome: tipoNome,
         nome: itemOriginal?.nome || item.nome,
-        preco: itemOriginal?.preco || item.preco,
+        preco: Number(itemOriginal?.preco || item.preco) || 0,
       };
-    }) || [];
+    });
     
     setForm({
       nome: combo.nome,
@@ -295,6 +321,19 @@ export default function AdminCombos() {
     if (!confirm(`Duplicar "${combo.nome}"?`)) return;
     
     try {
+      // Parse itensCombo se for string JSON
+      let itensComboArray = [];
+      try {
+        if (typeof combo.itensCombo === 'string') {
+          itensComboArray = JSON.parse(combo.itensCombo);
+        } else if (Array.isArray(combo.itensCombo)) {
+          itensComboArray = combo.itensCombo;
+        }
+      } catch (error) {
+        console.error("Erro ao fazer parse de itensCombo:", error);
+        itensComboArray = [];
+      }
+
       const dadosDuplicados = {
         nome: `${combo.nome} - Cópia`,
         descricao: combo.descricao || "",
@@ -304,7 +343,7 @@ export default function AdminCombos() {
         img: combo.img || "",
         selo: combo.selo || "",
         categoriaId: categoriaId,
-        itensCombo: combo.itensCombo || []
+        itensCombo: itensComboArray
       };
 
       const response = await fetch(`${API_URL}/api/itens`, {
