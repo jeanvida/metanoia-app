@@ -5,12 +5,21 @@ export default function Home() {
   const [idioma, setIdioma] = useState("pt");
   const t = (key) => getTranslation(idioma, key);
 
+  const isMobile = window.innerWidth <= 768;
+
   const styles = {
-    languageSelector: { position: "fixed", top: "20px", left: "20px", display: "flex", gap: "10px", zIndex: 999 },
+    languageSelector: { 
+      position: "fixed", 
+      top: isMobile ? "10px" : "20px", 
+      left: isMobile ? "10px" : "20px", 
+      display: "flex", 
+      gap: isMobile ? "6px" : "10px", 
+      zIndex: 999 
+    },
     flagBtn: { 
-      width: "50px", 
-      height: "50px", 
-      fontSize: "14px", 
+      width: isMobile ? "40px" : "50px", 
+      height: isMobile ? "40px" : "50px", 
+      fontSize: isMobile ? "12px" : "14px", 
       fontWeight: "bold",
       background: "#fff", 
       border: "2px solid #000", 
@@ -55,7 +64,12 @@ export default function Home() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "30px", color: "#000" }}>
+    <div style={{ 
+      textAlign: "center", 
+      marginTop: isMobile ? "80px" : "30px", 
+      color: "#000",
+      padding: isMobile ? "0 15px" : "0 20px"
+    }}>
       <div style={styles.languageSelector}>
         <button 
           onClick={() => setIdioma("pt")} 
@@ -89,8 +103,8 @@ export default function Home() {
         </button>
       </div>
       
-      <h1 style={{ fontSize: "32px", fontWeight: "bold" }}>{t("bemVindo")}</h1>
-      <p style={{ fontSize: "20px" }}>
+      <h1 style={{ fontSize: isMobile ? "24px" : "32px", fontWeight: "bold" }}>{t("bemVindo")}</h1>
+      <p style={{ fontSize: isMobile ? "16px" : "20px" }}>
         {t("subtitulo")}
       </p>
     </div>
