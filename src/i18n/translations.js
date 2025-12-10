@@ -1,5 +1,9 @@
 export const translations = {
   pt: {
+    // Home
+    bemVindo: "Bem-vindo ao Metanoia Burger!",
+    subtitulo: "Esqueça tudo o que você sabe sobre hambúrguer! Clique no Cardápio para começar.",
+    
     // Categorias
     Hamburgueres: "Hambúrgueres",
     Combos: "Combos",
@@ -62,6 +66,10 @@ export const translations = {
   },
   
   es: {
+    // Home
+    bemVindo: "¡Bienvenido a Metanoia Burger!",
+    subtitulo: "¡Olvida todo lo que sabes sobre hamburguesas! Haz clic en el Menú para empezar.",
+    
     // Categorias
     Hamburgueres: "Hamburguesas",
     Combos: "Combos",
@@ -124,6 +132,10 @@ export const translations = {
   },
   
   en: {
+    // Home
+    bemVindo: "Welcome to Metanoia Burger!",
+    subtitulo: "Forget everything you know about burgers! Click on the Menu to get started.",
+    
     // Categorias
     Hamburgueres: "Burgers",
     Combos: "Combos",

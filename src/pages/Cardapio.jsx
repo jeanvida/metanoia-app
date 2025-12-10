@@ -356,31 +356,31 @@ export default function Cardapio() {
           onClick={() => setIdioma("pt")} 
           style={{
             ...styles.flagBtn,
-            ...(idioma === "pt" ? styles.flagBtnActive : {})
+            ...(idioma === "pt" ? styles.flagBtnActivePT : {})
           }}
           title="Português"
         >
-          🇧🇷
+          PT
         </button>
         <button 
           onClick={() => setIdioma("es")} 
           style={{
             ...styles.flagBtn,
-            ...(idioma === "es" ? styles.flagBtnActive : {})
+            ...(idioma === "es" ? styles.flagBtnActiveES : {})
           }}
           title="Español"
         >
-          🇪🇸
+          ES
         </button>
         <button 
           onClick={() => setIdioma("en")} 
           style={{
             ...styles.flagBtn,
-            ...(idioma === "en" ? styles.flagBtnActive : {})
+            ...(idioma === "en" ? styles.flagBtnActiveEN : {})
           }}
           title="English"
         >
-          🇺🇸
+          EN
         </button>
       </div>
 
@@ -821,9 +821,52 @@ export default function Cardapio() {
 const styles = {
 // ... (Mantenha seus estilos originais aqui)
   container: { padding: "20px", position: "relative" },
-  languageSelector: { position: "fixed", top: "20px", left: "20px", display: "flex", gap: "8px", zIndex: 999 },
-  flagBtn: { fontSize: "28px", background: "transparent", border: "2px solid transparent", borderRadius: "8px", cursor: "pointer", padding: "5px 8px", transition: "all 0.2s" },
-  flagBtnActive: { border: "2px solid #000", backgroundColor: "#F1B100", transform: "scale(1.1)" },
+  languageSelector: { position: "fixed", top: "20px", left: "20px", display: "flex", gap: "10px", zIndex: 999 },
+  flagBtn: { 
+    width: "50px", 
+    height: "50px", 
+    fontSize: "14px", 
+    fontWeight: "bold",
+    background: "#fff", 
+    border: "2px solid #000", 
+    borderRadius: "10px", 
+    cursor: "pointer", 
+    transition: "all 0.3s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#000"
+  },
+  flagBtnActivePT: { 
+    backgroundImage: "url('/flags/br.svg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    color: "#fff",
+    border: "2px solid #000",
+    fontWeight: "bold",
+    textShadow: "2px 2px 4px rgba(0,0,0,0.9)"
+  },
+  flagBtnActiveES: { 
+    backgroundImage: "url('/flags/es.svg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    color: "#fff",
+    border: "2px solid #000",
+    fontWeight: "bold",
+    textShadow: "2px 2px 4px rgba(0,0,0,0.9)"
+  },
+  flagBtnActiveEN: { 
+    backgroundImage: "url('/flags/us.svg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    color: "#fff",
+    border: "2px solid #3c3b6e",
+    fontWeight: "bold",
+    textShadow: "2px 2px 4px rgba(0,0,0,0.9)"
+  },
   carrinhoIconBtn: { position: "fixed", top: "20px", right: "20px", backgroundColor: "#000", color: "#F1B100", border: "2px solid #000", borderRadius: "50%", width: "60px", height: "60px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 999, fontWeight: "bold" },
   fecharDrawerBtn: { position: "absolute", top: "50%", left: "-32px", transform: "translateY(-50%)", backgroundColor: "#000", color: "#F1B100", border: "2px solid #000", borderRadius: "8px 0 0 8px", width: "32px", height: "32px", fontSize: "14px", cursor: "pointer", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1001, lineHeight: "1" },
   title: { fontSize: "32px", fontWeight: "bold", color: "#000", marginBottom: "20px" },
