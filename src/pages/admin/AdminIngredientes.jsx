@@ -25,6 +25,8 @@ export default function AdminIngredientes() {
     precoPorUnidade: "", // preço por kg, litro ou unidade
     quantidadePorEmbalagem: "", // quantos kg/litros vem na embalagem
     precoEmbalagem: "", // preço da embalagem completa
+    pesoMedioPorUnidade: "", // peso médio de 1 unidade (ex: 1 pão = 80g, 1 fatia queijo = 20g) - para compra por UNIDADE
+    pesoPorPorcao: "", // peso de cada porção (ex: queijo = 15g/fatia, carne = 70g/disco) - para compra por KG/LITRO
   });
 
   useEffect(() => {
@@ -58,6 +60,8 @@ export default function AdminIngredientes() {
       precoPorUnidade: String(ingrediente.precoPorUnidade),
       quantidadePorEmbalagem: String(ingrediente.quantidadePorEmbalagem || ""),
       precoEmbalagem: String(ingrediente.precoEmbalagem || ""),
+      pesoMedioPorUnidade: String(ingrediente.pesoMedioPorUnidade || ""),
+      pesoPorPorcao: String(ingrediente.pesoPorPorcao || ""),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -70,6 +74,8 @@ export default function AdminIngredientes() {
       precoPorUnidade: "",
       quantidadePorEmbalagem: "",
       precoEmbalagem: "",
+      pesoMedioPorUnidade: "",
+      pesoPorPorcao: "",
     });
   }
 
@@ -112,6 +118,8 @@ export default function AdminIngredientes() {
           precoPorUnidade: parseFloat(form.precoPorUnidade),
           quantidadePorEmbalagem: form.quantidadePorEmbalagem ? parseFloat(form.quantidadePorEmbalagem) : null,
           precoEmbalagem: form.precoEmbalagem ? parseFloat(form.precoEmbalagem) : null,
+          pesoMedioPorUnidade: form.pesoMedioPorUnidade ? parseFloat(form.pesoMedioPorUnidade) : null,
+          pesoPorPorcao: form.pesoPorPorcao ? parseFloat(form.pesoPorPorcao) : null,
         }),
       });
 
@@ -128,6 +136,8 @@ export default function AdminIngredientes() {
           precoPorUnidade: "",
           quantidadePorEmbalagem: "",
           precoEmbalagem: "",
+          pesoMedioPorUnidade: "",
+          pesoPorPorcao: "",
         });
       } else {
         const errorData = await response.json();
@@ -236,6 +246,46 @@ export default function AdminIngredientes() {
           />
         </div>
 
+        {form.unidade === "unidade" && (
+          <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#fff3cd", borderRadius: "8px", border: "2px solid #ffc107" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+              Peso Médio por Unidade (gramas) - Opcional
+            </label>
+            <input
+              style={styles.input}
+              placeholder="Ex: 80 (para 1 pão = 80g)"
+              type="number"
+              step="0.1"
+              value={form.pesoMedioPorUnidade}
+              onChange={(e) => setForm({ ...form, pesoMedioPorUnidade: e.target.value })}
+            />
+            <small style={{ display: "block", marginTop: "5px", color: "#856404" }}>
+              💡 Use este campo quando o item é comprado POR UNIDADE (ex: pão, sachê)
+            </small>
+          </div>
+        )}
+
+        {(form.unidade === "kg" || form.unidade === "litro") && (
+          <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#d4edda", borderRadius: "8px", border: "2px solid #28a745" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+              Peso/Volume por Porção (gramas/ml) - Opcional
+            </label>
+            <input
+              style={styles.input}
+              placeholder={form.unidade === "kg" ? "Ex: 15 (queijo 1 fatia = 15g), 70 (carne 1 disco = 70g)" : "Ex: 50 (1 dose = 50ml)"}
+              type="number"
+              step="0.1"
+              value={form.pesoPorPorcao}
+              onChange={(e) => setForm({ ...form, pesoPorPorcao: e.target.value })}
+            />
+            <small style={{ display: "block", marginTop: "5px", color: "#155724" }}>
+              💡 Use este campo quando o item é comprado em {form.unidade === "kg" ? "KG" : "LITRO"} mas usado em porções
+              <br />
+              Exemplo: Queijo cheddar comprado em kg, mas você usa 2 fatias de 15g cada
+            </small>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <button style={styles.saveBtn} onClick={salvar}>
             {editandoId ? 'Atualizar Ingrediente' : 'Salvar Ingrediente'}
@@ -260,6 +310,12 @@ export default function AdminIngredientes() {
             <small>
               Unidade: {getUnidadeLabel(ing.unidade)} | 
               Preço: R$ {Number(ing.precoPorUnidade).toFixed(4)}/{getUnidadeLabel(ing.unidade)}
+              {ing.pesoMedioPorUnidade && (
+                <> | 1 {getUnidadeLabel(ing.unidade)} ≈ {Number(ing.pesoMedioPorUnidade).toFixed(1)}g</>
+              )}
+              {ing.pesoPorPorcao && (
+                <> | <strong style={{color: "#28a745"}}>Porção: {Number(ing.pesoPorPorcao).toFixed(1)}g</strong></>
+              )}
               {ing.quantidadePorEmbalagem && (
                 <> | Embalagem: {ing.quantidadePorEmbalagem} {getUnidadeLabel(ing.unidade)} = R$ {Number(ing.precoEmbalagem).toFixed(2)}</>
               )}

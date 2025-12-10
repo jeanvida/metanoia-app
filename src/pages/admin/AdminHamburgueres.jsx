@@ -95,17 +95,61 @@ export default function AdminHamburgueres() {
     const ingredienteSelecionado = ingredientesDisponiveis.find(i => i.id === novoIngrediente.ingredienteId);
     if (!ingredienteSelecionado) return;
 
-    // Calcular custo baseado na quantidade e preço por unidade
     const quantidade = parseFloat(novoIngrediente.quantidade);
-    const custo = quantidade * parseFloat(ingredienteSelecionado.precoPorUnidade);
+    let custo = 0;
+    let quantidadeExibida = quantidade;
+    let unidadeExibida = ingredienteSelecionado.unidade;
+    let descricaoDetalhada = "";
+
+    // Lógica de cálculo baseada no tipo de unidade
+    if (ingredienteSelecionado.unidade === "unidade") {
+      // Ingrediente por unidade (ex: pão, sachê)
+      custo = quantidade * parseFloat(ingredienteSelecionado.precoPorUnidade);
+      unidadeExibida = quantidade === 1 ? "un" : "uns";
+      descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida}`;
+    } else if (ingredienteSelecionado.unidade === "kg") {
+      // Ingrediente por peso
+      if (ingredienteSelecionado.pesoPorPorcao) {
+        // Tem porção definida - usuario informa quantas porções quer (ex: 2 fatias)
+        const pesoTotal = quantidade * parseFloat(ingredienteSelecionado.pesoPorPorcao);
+        const pesoEmKg = pesoTotal / 1000;
+        custo = pesoEmKg * parseFloat(ingredienteSelecionado.precoPorUnidade);
+        unidadeExibida = quantidade === 1 ? "porção" : "porções";
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
+      } else {
+        // Sem porção definida - usuario informa gramas direto
+        const quantidadeEmKg = quantidade / 1000;
+        custo = quantidadeEmKg * parseFloat(ingredienteSelecionado.precoPorUnidade);
+        unidadeExibida = "g";
+        descricaoDetalhada = `${quantidadeExibida}g`;
+      }
+    } else if (ingredienteSelecionado.unidade === "litro") {
+      // Ingrediente líquido
+      if (ingredienteSelecionado.pesoPorPorcao) {
+        // Tem porção definida - usuario informa quantas porções quer (ex: 1 dose)
+        const volumeTotal = quantidade * parseFloat(ingredienteSelecionado.pesoPorPorcao);
+        const volumeEmLitros = volumeTotal / 1000;
+        custo = volumeEmLitros * parseFloat(ingredienteSelecionado.precoPorUnidade);
+        unidadeExibida = quantidade === 1 ? "porção" : "porções";
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${volumeTotal.toFixed(0)}ml)`;
+      } else {
+        // Sem porção definida - usuario informa ml direto
+        const quantidadeEmLitros = quantidade / 1000;
+        custo = quantidadeEmLitros * parseFloat(ingredienteSelecionado.precoPorUnidade);
+        unidadeExibida = "ml";
+        descricaoDetalhada = `${quantidadeExibida}ml`;
+      }
+    }
 
     setForm((prev) => ({
       ...prev,
       ingredientes: [...prev.ingredientes, {
         ingredienteId: ingredienteSelecionado.id,
         nome: ingredienteSelecionado.nome,
-        quantidade: quantidade,
-        unidade: ingredienteSelecionado.unidade,
+        quantidade: quantidadeExibida,
+        unidade: unidadeExibida,
+        descricaoDetalhada: descricaoDetalhada,
+        pesoPorPorcao: ingredienteSelecionado.pesoPorPorcao || null,
         custo: custo,
       }],
     }));
@@ -345,18 +389,43 @@ export default function AdminHamburgueres() {
             }
           >
             <option value="">Selecione um ingrediente</option>
-            {ingredientesDisponiveis.map(ing => (
-              <option key={ing.id} value={ing.id}>
-                {ing.nome} (R$ {Number(ing.precoPorUnidade).toFixed(4)}/{ing.unidade === 'kg' ? 'kg' : ing.unidade === 'litro' ? 'L' : 'un'})
-              </option>
-            ))}
+            {ingredientesDisponiveis.map(ing => {
+              const unidadeLabel = ing.unidade === 'kg' ? 'kg' : ing.unidade === 'litro' ? 'L' : 'un';
+              const pesoInfo = ing.pesoMedioPorUnidade ? ` [~${Number(ing.pesoMedioPorUnidade).toFixed(0)}g/un]` : '';
+              const porcaoInfo = ing.pesoPorPorcao ? ` [${Number(ing.pesoPorPorcao).toFixed(0)}g/porção]` : '';
+              return (
+                <option key={ing.id} value={ing.id}>
+                  {ing.nome} (R$ {Number(ing.precoPorUnidade).toFixed(4)}/{unidadeLabel}){pesoInfo}{porcaoInfo}
+                </option>
+              );
+            })}
           </select>
 
           <input
             style={styles.inputSmall}
-            placeholder="Quantidade (g, ml ou un)"
+            placeholder={
+              novoIngrediente.ingredienteId 
+                ? (() => {
+                    const ing = ingredientesDisponiveis.find(i => i.id === novoIngrediente.ingredienteId);
+                    if (!ing) return "Selecione ingrediente";
+                    
+                    if (ing.unidade === 'unidade') {
+                      return "Quantidade (unidades)";
+                    } else if (ing.unidade === 'kg') {
+                      return ing.pesoPorPorcao 
+                        ? `Nº de porções (cada ${Number(ing.pesoPorPorcao).toFixed(0)}g)` 
+                        : "Peso (gramas)";
+                    } else if (ing.unidade === 'litro') {
+                      return ing.pesoPorPorcao 
+                        ? `Nº de porções (cada ${Number(ing.pesoPorPorcao).toFixed(0)}ml)` 
+                        : "Volume (ml)";
+                    }
+                    return "Quantidade";
+                  })()
+                : "Selecione ingrediente"
+            }
             type="number"
-            step="0.001"
+            step={novoIngrediente.ingredienteId && ingredientesDisponiveis.find(i => i.id === novoIngrediente.ingredienteId)?.pesoPorPorcao ? "1" : "0.001"}
             value={novoIngrediente.quantidade}
             onChange={(e) =>
               setNovoIngrediente({ ...novoIngrediente, quantidade: e.target.value })
@@ -376,7 +445,7 @@ export default function AdminHamburgueres() {
             {form.ingredientes.map((ing, idx) => (
               <div key={idx} style={styles.ingItem}>
                 <div>
-                  <strong>{ing.nome}</strong> — {ing.quantidade}{ing.unidade === 'kg' ? 'g' : ing.unidade === 'litro' ? 'ml' : 'un'} — R$ {ing.custo.toFixed(2)}
+                  <strong>{ing.nome}</strong> — {ing.descricaoDetalhada} — R$ {ing.custo.toFixed(2)}
                 </div>
 
                 <button

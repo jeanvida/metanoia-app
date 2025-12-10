@@ -219,7 +219,7 @@ app.get("/api/ingredientes", async (req, res) => {
 });
 
 app.post("/api/ingredientes", async (req, res) => {
-  const { nome, unidade, precoPorUnidade, quantidadePorEmbalagem, precoEmbalagem } = req.body;
+  const { nome, unidade, precoPorUnidade, quantidadePorEmbalagem, precoEmbalagem, pesoMedioPorUnidade, pesoPorPorcao } = req.body;
   try {
     const ingrediente = await prisma.ingrediente.create({
       data: {
@@ -228,6 +228,8 @@ app.post("/api/ingredientes", async (req, res) => {
         precoPorUnidade: parseFloat(precoPorUnidade),
         quantidadePorEmbalagem: quantidadePorEmbalagem ? parseFloat(quantidadePorEmbalagem) : null,
         precoEmbalagem: precoEmbalagem ? parseFloat(precoEmbalagem) : null,
+        pesoMedioPorUnidade: pesoMedioPorUnidade ? parseFloat(pesoMedioPorUnidade) : null,
+        pesoPorPorcao: pesoPorPorcao ? parseFloat(pesoPorPorcao) : null,
       },
     });
     res.json(ingrediente);
@@ -238,7 +240,7 @@ app.post("/api/ingredientes", async (req, res) => {
 
 app.put("/api/ingredientes/:id", async (req, res) => {
   const { id } = req.params;
-  const { nome, unidade, precoPorUnidade, quantidadePorEmbalagem, precoEmbalagem } = req.body;
+  const { nome, unidade, precoPorUnidade, quantidadePorEmbalagem, precoEmbalagem, pesoMedioPorUnidade, pesoPorPorcao } = req.body;
   try {
     const ingrediente = await prisma.ingrediente.update({
       where: { id },
@@ -248,6 +250,8 @@ app.put("/api/ingredientes/:id", async (req, res) => {
         precoPorUnidade: parseFloat(precoPorUnidade),
         quantidadePorEmbalagem: quantidadePorEmbalagem ? parseFloat(quantidadePorEmbalagem) : null,
         precoEmbalagem: precoEmbalagem ? parseFloat(precoEmbalagem) : null,
+        pesoMedioPorUnidade: pesoMedioPorUnidade ? parseFloat(pesoMedioPorUnidade) : null,
+        pesoPorPorcao: pesoPorPorcao ? parseFloat(pesoPorPorcao) : null,
       },
     });
     res.json(ingrediente);
