@@ -125,15 +125,47 @@ export default function AdminHamburgueres() {
 
     // Lógica de cálculo baseada no tipo de unidade
     if (ingredienteSelecionado.unidade === "unidade") {
-      // Ingrediente por unidade (ex: pão, sachê)
-      custo = quantidade * parseFloat(ingredienteSelecionado.precoPorUnidade);
-      unidadeExibida = quantidade === 1 ? "un" : "uns";
-      descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida}`;
-      
-      // Se tem peso médio por unidade, calcular peso total
-      if (ingredienteSelecionado.pesoMedioPorUnidade) {
-        pesoGramas = quantidade * parseFloat(ingredienteSelecionado.pesoMedioPorUnidade);
-        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+      // Ingrediente por unidade (ex: pão, sachê, alface)
+      if (ingredienteSelecionado.pesoPorPorcao) {
+        // Tem porção definida - ex: 1 pé de alface = 20 folhas
+        // Usuario informa quantas porções/folhas quer
+        const porcoesPorUnidade = parseFloat(ingredienteSelecionado.pesoPorPorcao);
+        const unidadesNecessarias = quantidade / porcoesPorUnidade;
+        custo = unidadesNecessarias * parseFloat(ingredienteSelecionado.precoPorUnidade);
+        
+        // Usar o tipoPorcao definido no ingrediente
+        const tipoPorcao = ingredienteSelecionado.tipoPorcao || "porção";
+        if (tipoPorcao === "fatia") {
+          unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
+        } else if (tipoPorcao === "unidade") {
+          unidadeExibida = quantidade === 1 ? "un" : "uns";
+        } else if (tipoPorcao === "rodela") {
+          unidadeExibida = quantidade === 1 ? "rodela" : "rodelas";
+        } else if (tipoPorcao === "folha") {
+          unidadeExibida = quantidade === 1 ? "folha" : "folhas";
+        } else {
+          unidadeExibida = quantidade === 1 ? "porção" : "porções";
+        }
+        
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida}`;
+        
+        // Se tem peso médio, calcular peso total
+        if (ingredienteSelecionado.pesoMedioPorUnidade) {
+          const pesoPorPorcao = parseFloat(ingredienteSelecionado.pesoMedioPorUnidade) / porcoesPorUnidade;
+          pesoGramas = quantidade * pesoPorPorcao;
+          descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+        }
+      } else {
+        // Sem porção - usa unidade direto
+        custo = quantidade * parseFloat(ingredienteSelecionado.precoPorUnidade);
+        unidadeExibida = quantidade === 1 ? "un" : "uns";
+        descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida}`;
+        
+        // Se tem peso médio por unidade, calcular peso total
+        if (ingredienteSelecionado.pesoMedioPorUnidade) {
+          pesoGramas = quantidade * parseFloat(ingredienteSelecionado.pesoMedioPorUnidade);
+          descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+        }
       }
     } else if (ingredienteSelecionado.unidade === "kg") {
       // Ingrediente por peso
@@ -245,12 +277,40 @@ export default function AdminHamburgueres() {
       
       // Recalcular descrição baseado no ingrediente
       if (ing.unidade === "unidade") {
-        unidadeExibida = quantidade === 1 ? "un" : "uns";
-        if (ing.pesoMedioPorUnidade) {
-          pesoGramas = quantidade * parseFloat(ing.pesoMedioPorUnidade);
-          descricaoDetalhada = `${quantidade} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+        if (ing.pesoPorPorcao) {
+          // Com porção definida - ex: 1 pé alface = 20 folhas
+          const porcoesPorUnidade = parseFloat(ing.pesoPorPorcao);
+          
+          // Usar o tipoPorcao definido no ingrediente
+          const tipoPorcao = ing.tipoPorcao || "porção";
+          if (tipoPorcao === "fatia") {
+            unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
+          } else if (tipoPorcao === "unidade") {
+            unidadeExibida = quantidade === 1 ? "un" : "uns";
+          } else if (tipoPorcao === "rodela") {
+            unidadeExibida = quantidade === 1 ? "rodela" : "rodelas";
+          } else if (tipoPorcao === "folha") {
+            unidadeExibida = quantidade === 1 ? "folha" : "folhas";
+          } else {
+            unidadeExibida = quantidade === 1 ? "porção" : "porções";
+          }
+          
+          if (ing.pesoMedioPorUnidade) {
+            const pesoPorPorcao = parseFloat(ing.pesoMedioPorUnidade) / porcoesPorUnidade;
+            pesoGramas = quantidade * pesoPorPorcao;
+            descricaoDetalhada = `${quantidade} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+          } else {
+            descricaoDetalhada = `${quantidade} ${unidadeExibida}`;
+          }
         } else {
-          descricaoDetalhada = `${quantidade} ${unidadeExibida}`;
+          // Sem porção - usa unidade direto
+          unidadeExibida = quantidade === 1 ? "un" : "uns";
+          if (ing.pesoMedioPorUnidade) {
+            pesoGramas = quantidade * parseFloat(ing.pesoMedioPorUnidade);
+            descricaoDetalhada = `${quantidade} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+          } else {
+            descricaoDetalhada = `${quantidade} ${unidadeExibida}`;
+          }
         }
       } else if (ing.unidade === "kg") {
         if (ing.pesoPorPorcao) {
@@ -560,7 +620,13 @@ export default function AdminHamburgueres() {
               // Definir o tipo de porcionamento
               let tipoLabel = '';
               if (ing.unidade === 'unidade') {
-                tipoLabel = ing.pesoMedioPorUnidade ? ` - ${Number(ing.pesoMedioPorUnidade).toFixed(0)}g/un` : '';
+                if (ing.pesoPorPorcao) {
+                  // Com porção - ex: 1 pé alface = 20 folhas
+                  const tipoPorcao = ing.tipoPorcao || 'porção';
+                  tipoLabel = ` - ${Number(ing.pesoPorPorcao).toFixed(0)} ${tipoPorcao}${Number(ing.pesoPorPorcao) > 1 ? 's' : ''}/un`;
+                } else if (ing.pesoMedioPorUnidade) {
+                  tipoLabel = ` - ${Number(ing.pesoMedioPorUnidade).toFixed(0)}g/un`;
+                }
               } else if (ing.unidade === 'kg' && ing.pesoPorPorcao) {
                 const tipoPorcao = ing.tipoPorcao || 'porção';
                 tipoLabel = ` - ${Number(ing.pesoPorPorcao).toFixed(0)}g/${tipoPorcao}`;
@@ -585,9 +651,19 @@ export default function AdminHamburgueres() {
                     if (!ing) return "Selecione ingrediente";
                     
                     if (ing.unidade === 'unidade') {
-                      return ing.pesoMedioPorUnidade 
-                        ? `Quantidade (${Number(ing.pesoMedioPorUnidade).toFixed(0)}g cada)` 
-                        : "Quantidade";
+                      if (ing.pesoPorPorcao) {
+                        // Com porção - ex: 1 pé alface = 20 folhas
+                        const tipoPorcao = ing.tipoPorcao || 'porção';
+                        const tipoPorcaoPlural = tipoPorcao === 'fatia' ? 'fatias' : 
+                                                  tipoPorcao === 'unidade' ? 'uns' :
+                                                  tipoPorcao === 'rodela' ? 'rodelas' :
+                                                  tipoPorcao === 'folha' ? 'folhas' : 'porções';
+                        return `Nº de ${tipoPorcaoPlural} (${Number(ing.pesoPorPorcao).toFixed(0)} por unidade)`;
+                      } else if (ing.pesoMedioPorUnidade) {
+                        return `Quantidade (${Number(ing.pesoMedioPorUnidade).toFixed(0)}g cada)`;
+                      } else {
+                        return "Quantidade";
+                      }
                     } else if (ing.unidade === 'kg') {
                       if (ing.pesoPorPorcao) {
                         const tipoPorcao = ing.tipoPorcao || 'porção';
