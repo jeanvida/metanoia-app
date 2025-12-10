@@ -238,17 +238,21 @@ export default function AdminCombos() {
     // Parse itensCombo se for string JSON
     let itensComboArray = [];
     try {
-      if (typeof combo.itensCombo === 'string') {
+      if (combo.itensCombo === null || combo.itensCombo === undefined) {
+        console.log("⚠️ Combo antigo sem itensCombo - precisa adicionar os itens manualmente");
+        alert("⚠️ Este combo foi criado antes da atualização.\n\nPor favor, adicione os itens do combo novamente usando os seletores abaixo.");
+      } else if (typeof combo.itensCombo === 'string') {
         console.log("🔄 Fazendo parse de string JSON");
         itensComboArray = JSON.parse(combo.itensCombo);
       } else if (Array.isArray(combo.itensCombo)) {
         console.log("✅ itensCombo já é array");
         itensComboArray = combo.itensCombo;
       } else if (combo.itensCombo && typeof combo.itensCombo === 'object') {
-        console.log("📋 itensCombo é objeto, tratando como array");
-        itensComboArray = [combo.itensCombo];
+        console.log("📋 itensCombo é objeto JSON");
+        // Se for um objeto com propriedades de array
+        itensComboArray = Object.values(combo.itensCombo);
       } else {
-        console.log("⚠️ itensCombo vazio ou inválido");
+        console.log("⚠️ itensCombo em formato desconhecido");
       }
     } catch (error) {
       console.error("❌ Erro ao fazer parse de itensCombo:", error);
