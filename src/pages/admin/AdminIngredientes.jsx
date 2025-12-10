@@ -27,6 +27,7 @@ export default function AdminIngredientes() {
     precoEmbalagem: "", // preço da embalagem completa
     pesoMedioPorUnidade: "", // peso médio de 1 unidade (ex: 1 pão = 80g, 1 fatia queijo = 20g) - para compra por UNIDADE
     pesoPorPorcao: "", // peso de cada porção (ex: queijo = 15g/fatia, carne = 70g/disco) - para compra por KG/LITRO
+    tipoPorcao: "porção", // como chamar a porção: "fatia", "unidade", "porção"
   });
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function AdminIngredientes() {
       precoEmbalagem: String(ingrediente.precoEmbalagem || ""),
       pesoMedioPorUnidade: String(ingrediente.pesoMedioPorUnidade || ""),
       pesoPorPorcao: String(ingrediente.pesoPorPorcao || ""),
+      tipoPorcao: ingrediente.tipoPorcao || "porção",
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -76,6 +78,7 @@ export default function AdminIngredientes() {
       precoEmbalagem: "",
       pesoMedioPorUnidade: "",
       pesoPorPorcao: "",
+      tipoPorcao: "porção",
     });
   }
 
@@ -120,6 +123,7 @@ export default function AdminIngredientes() {
           precoEmbalagem: form.precoEmbalagem ? parseFloat(form.precoEmbalagem) : null,
           pesoMedioPorUnidade: form.pesoMedioPorUnidade ? parseFloat(form.pesoMedioPorUnidade) : null,
           pesoPorPorcao: form.pesoPorPorcao ? parseFloat(form.pesoPorPorcao) : null,
+          tipoPorcao: form.tipoPorcao || null,
         }),
       });
 
@@ -138,6 +142,7 @@ export default function AdminIngredientes() {
           precoEmbalagem: "",
           pesoMedioPorUnidade: "",
           pesoPorPorcao: "",
+          tipoPorcao: "porção",
         });
       } else {
         const errorData = await response.json();
@@ -278,6 +283,26 @@ export default function AdminIngredientes() {
               value={form.pesoPorPorcao}
               onChange={(e) => setForm({ ...form, pesoPorPorcao: e.target.value })}
             />
+            
+            {form.pesoPorPorcao && (
+              <div style={{ marginTop: "15px" }}>
+                <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+                  Como chamar essa porção?
+                </label>
+                <select
+                  style={styles.input}
+                  value={form.tipoPorcao}
+                  onChange={(e) => setForm({ ...form, tipoPorcao: e.target.value })}
+                >
+                  <option value="porção">Porção (ex: 1 porção, 2 porções)</option>
+                  <option value="fatia">Fatia (ex: 1 fatia, 2 fatias)</option>
+                  <option value="unidade">Unidade (ex: 1 un, 2 uns)</option>
+                  <option value="rodela">Rodela (ex: 1 rodela, 2 rodelas)</option>
+                  <option value="folha">Folha (ex: 1 folha, 2 folhas)</option>
+                </select>
+              </div>
+            )}
+            
             <small style={{ display: "block", marginTop: "5px", color: "#155724" }}>
               💡 Use este campo quando o item é comprado em {form.unidade === "kg" ? "KG" : "LITRO"} mas usado em porções
               <br />

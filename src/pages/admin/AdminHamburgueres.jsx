@@ -80,15 +80,16 @@ export default function AdminHamburgueres() {
         }
         
         const categorias = await catResponse.json();
-        const hamburguesCategoria = categorias.find((c) => c.nome === "Hamburgueres");
+        const hamburguesCategoria = categorias.find((c) => c.nome === "Hambúrgueres");
         if (hamburguesCategoria) {
           setCategoriaId(hamburguesCategoria.id);
         }
 
         // Carregar hambúrgueres
-        const response = await fetch(`${API_URL}/api/itens?categoria=Hamburgueres`);
+        const response = await fetch(`${API_URL}/api/itens?categoria=Hambúrgueres`);
         if (response.ok) {
           const data = await response.json();
+          console.log("📦 Hambúrgueres carregados:", data);
           setHamburgueres(data);
         }
 
@@ -96,6 +97,7 @@ export default function AdminHamburgueres() {
         const ingResponse = await fetch(`${API_URL}/api/ingredientes`);
         if (ingResponse.ok) {
           const ingredientes = await ingResponse.json();
+          console.log("🥬 Ingredientes disponíveis:", ingredientes);
           setIngredientesDisponiveis(ingredientes);
         }
       } catch (error) {
@@ -140,7 +142,21 @@ export default function AdminHamburgueres() {
         const pesoTotal = quantidade * parseFloat(ingredienteSelecionado.pesoPorPorcao);
         const pesoEmKg = pesoTotal / 1000;
         custo = pesoEmKg * parseFloat(ingredienteSelecionado.precoPorUnidade);
-        unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
+        
+        // Usar o tipoPorcao definido no ingrediente
+        const tipoPorcao = ingredienteSelecionado.tipoPorcao || "porção";
+        if (tipoPorcao === "fatia") {
+          unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
+        } else if (tipoPorcao === "unidade") {
+          unidadeExibida = quantidade === 1 ? "un" : "uns";
+        } else if (tipoPorcao === "rodela") {
+          unidadeExibida = quantidade === 1 ? "rodela" : "rodelas";
+        } else if (tipoPorcao === "folha") {
+          unidadeExibida = quantidade === 1 ? "folha" : "folhas";
+        } else {
+          unidadeExibida = quantidade === 1 ? "porção" : "porções";
+        }
+        
         descricaoDetalhada = `${quantidadeExibida} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
         pesoGramas = pesoTotal;
       } else {
@@ -209,7 +225,71 @@ export default function AdminHamburgueres() {
   }
 
   function editarHamburguer(hamburguer) {
+    console.log("🔍 Editando hambúrguer:", hamburguer);
+    console.log("🔍 Ingredientes do hambúrguer:", hamburguer.ingredientes);
+    console.log("🔍 Ingredientes disponíveis:", ingredientesDisponiveis);
+    
     setEditandoId(hamburguer.id);
+    
+    // Converter ingredientes salvos para formato do form
+    const ingredientesConvertidos = hamburguer.ingredientes?.map(itemIng => {
+      const ing = ingredientesDisponiveis.find(i => i.id === itemIng.ingredienteId);
+      console.log("🔍 Processando ingrediente:", itemIng, "Encontrado:", ing);
+      
+      if (!ing) return null;
+      
+      const quantidade = parseFloat(itemIng.quantidade);
+      let descricaoDetalhada = "";
+      let pesoGramas = 0;
+      let unidadeExibida = "";
+      
+      // Recalcular descrição baseado no ingrediente
+      if (ing.unidade === "unidade") {
+        unidadeExibida = quantidade === 1 ? "un" : "uns";
+        if (ing.pesoMedioPorUnidade) {
+          pesoGramas = quantidade * parseFloat(ing.pesoMedioPorUnidade);
+          descricaoDetalhada = `${quantidade} ${unidadeExibida} (${pesoGramas.toFixed(0)}g)`;
+        } else {
+          descricaoDetalhada = `${quantidade} ${unidadeExibida}`;
+        }
+      } else if (ing.unidade === "kg" && ing.pesoPorPorcao) {
+        const pesoTotal = quantidade * parseFloat(ing.pesoPorPorcao);
+        pesoGramas = pesoTotal;
+        
+        // Usar o tipoPorcao definido no ingrediente
+        const tipoPorcao = ing.tipoPorcao || "porção";
+        if (tipoPorcao === "fatia") {
+          unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
+        } else if (tipoPorcao === "unidade") {
+          unidadeExibida = quantidade === 1 ? "un" : "uns";
+        } else if (tipoPorcao === "rodela") {
+          unidadeExibida = quantidade === 1 ? "rodela" : "rodelas";
+        } else if (tipoPorcao === "folha") {
+          unidadeExibida = quantidade === 1 ? "folha" : "folhas";
+        } else {
+          unidadeExibida = quantidade === 1 ? "porção" : "porções";
+        }
+        
+        descricaoDetalhada = `${quantidade} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
+      } else if (ing.unidade === "litro" && ing.pesoPorPorcao) {
+        const volumeTotal = quantidade * parseFloat(ing.pesoPorPorcao);
+        pesoGramas = volumeTotal;
+        unidadeExibida = quantidade === 1 ? "porção" : "porções";
+        descricaoDetalhada = `${quantidade} ${unidadeExibida} (${volumeTotal.toFixed(0)}ml)`;
+      }
+      
+      return {
+        ingredienteId: itemIng.ingredienteId,
+        nome: ing.nome,
+        quantidade: quantidade,
+        unidade: unidadeExibida,
+        descricaoDetalhada: descricaoDetalhada,
+        pesoPorPorcao: ing.pesoPorPorcao || null,
+        pesoGramas: pesoGramas,
+        custo: parseFloat(itemIng.custo),
+      };
+    }).filter(Boolean) || [];
+    
     setForm({
       nome: hamburguer.nome,
       descricao: hamburguer.descricao || "",
@@ -217,7 +297,7 @@ export default function AdminHamburgueres() {
       descricaoEN: hamburguer.descricaoEN || "",
       foto: hamburguer.img || "",
       selo: hamburguer.selo || "",
-      ingredientes: hamburguer.ingredientes || [],
+      ingredientes: ingredientesConvertidos,
     });
     setPrecoFinal(String(hamburguer.preco));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -285,6 +365,11 @@ export default function AdminHamburgueres() {
             selo: form.selo || null,
             img: form.foto || "",
             categoriaId: categoriaId,
+            ingredientes: form.ingredientes.map(ing => ({
+              ingredienteId: ing.ingredienteId,
+              quantidade: ing.quantidade,
+              custo: ing.custo
+            }))
           }),
         });
 
@@ -297,7 +382,7 @@ export default function AdminHamburgueres() {
           alert(mensagem);
           
           // Recarregar a lista
-          const recarregar = await fetch(`${API_URL}/api/itens?categoria=Hamburgueres`);
+          const recarregar = await fetch(`${API_URL}/api/itens?categoria=Hambúrgueres`);
           if (recarregar.ok) {
             const data = await recarregar.json();
             setHamburgueres(data);
@@ -405,14 +490,13 @@ export default function AdminHamburgueres() {
           >
             <option value="">Selecione um ingrediente</option>
             {ingredientesDisponiveis.map(ing => {
-              const unidadeLabel = ing.unidade === 'kg' ? 'kg' : ing.unidade === 'litro' ? 'L' : 'un';
-              
               // Definir o tipo de porcionamento
               let tipoLabel = '';
               if (ing.unidade === 'unidade') {
                 tipoLabel = ing.pesoMedioPorUnidade ? ` - ${Number(ing.pesoMedioPorUnidade).toFixed(0)}g/un` : '';
               } else if (ing.unidade === 'kg' && ing.pesoPorPorcao) {
-                tipoLabel = ` - ${Number(ing.pesoPorPorcao).toFixed(0)}g/fatia`;
+                const tipoPorcao = ing.tipoPorcao || 'porção';
+                tipoLabel = ` - ${Number(ing.pesoPorPorcao).toFixed(0)}g/${tipoPorcao}`;
               } else if (ing.unidade === 'litro' && ing.pesoPorPorcao) {
                 tipoLabel = ` - ${Number(ing.pesoPorPorcao).toFixed(0)}ml/porção`;
               }
@@ -438,9 +522,16 @@ export default function AdminHamburgueres() {
                         ? `Quantidade (${Number(ing.pesoMedioPorUnidade).toFixed(0)}g cada)` 
                         : "Quantidade";
                     } else if (ing.unidade === 'kg') {
-                      return ing.pesoPorPorcao 
-                        ? `Nº de fatias/porções (${Number(ing.pesoPorPorcao).toFixed(0)}g cada)` 
-                        : "Peso (gramas)";
+                      if (ing.pesoPorPorcao) {
+                        const tipoPorcao = ing.tipoPorcao || 'porção';
+                        const tipoPorcaoPlural = tipoPorcao === 'fatia' ? 'fatias' : 
+                                                  tipoPorcao === 'unidade' ? 'uns' :
+                                                  tipoPorcao === 'rodela' ? 'rodelas' :
+                                                  tipoPorcao === 'folha' ? 'folhas' : 'porções';
+                        return `Nº de ${tipoPorcaoPlural} (${Number(ing.pesoPorPorcao).toFixed(0)}g cada)`;
+                      } else {
+                        return "Peso (gramas)";
+                      }
                     } else if (ing.unidade === 'litro') {
                       return ing.pesoPorPorcao 
                         ? `Nº de porções (${Number(ing.pesoPorPorcao).toFixed(0)}ml cada)` 

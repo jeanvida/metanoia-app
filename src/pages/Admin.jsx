@@ -55,7 +55,7 @@ export default function Admin() {
   }
 
   // Se estiver logado → mostra painel admin
-  const categorias = ["hamburgueres", "combos", "acompanhamentos", "bebidas"];
+  const categorias = ["hambúrgueres", "combos", "acompanhamentos", "bebidas"];
   const outros = ["ingredientes", "pedidos"];
 
   return (

@@ -15,8 +15,8 @@ export default function Cardapio() {
   const { idioma, setIdioma } = useLanguage(); // Usar contexto de idioma
   const t = (key) => getTranslation(idioma, key); // Função helper
   
-  const categorias = ["Hamburgueres", "Combos", "Acompanhamentos", "Bebidas"];
-  const [categoriaAtiva, setCategoriaAtiva] = useState("Hamburgueres");
+  const categorias = ["Hambúrgueres", "Combos", "Acompanhamentos", "Bebidas"];
+  const [categoriaAtiva, setCategoriaAtiva] = useState("Hambúrgueres");
   const [modalImg, setModalImg] = useState(null);
 
   // ===== Checkout / Carrinho =====
