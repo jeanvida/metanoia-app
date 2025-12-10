@@ -431,27 +431,33 @@ export default function Cardapio() {
         ) : (
           produtos[categoriaAtiva] && produtos[categoriaAtiva].map((item) => (
             <div key={item.id} style={styles.card}>
-              <img
-                src={item.img}
-                alt={item.nome}
-                style={styles.img}
-                onClick={() => setModalImg(item.img)}
-              />
-              <h3 style={styles.cardTitle}>{item.nome}</h3>
-              {(item.descricao || item.descricaoES || item.descricaoEN) && (
-                <p style={styles.descricao}>
-                  {idioma === 'es' ? (item.descricaoES || item.descricao) : 
-                   idioma === 'en' ? (item.descricaoEN || item.descricao) : 
-                   item.descricao}
-                </p>
-              )}
-              <p style={styles.preco}>R$ {item.preco.toFixed(2)}</p>
-              <button
-                style={styles.addBtn}
-                onClick={() => adicionarAoCarrinho(item)}
-              >
-                {t("adicionar")}
-              </button>
+              <div style={styles.cardImageContainer}>
+                <img
+                  src={item.img}
+                  alt={item.nome}
+                  style={styles.img}
+                  onClick={() => setModalImg(item.img)}
+                />
+              </div>
+              <div style={styles.cardContent}>
+                <h3 style={styles.cardTitle}>{item.nome}</h3>
+                {(item.descricao || item.descricaoES || item.descricaoEN) && (
+                  <p style={styles.descricao}>
+                    {idioma === 'es' ? (item.descricaoES || item.descricao) : 
+                     idioma === 'en' ? (item.descricaoEN || item.descricao) : 
+                     item.descricao}
+                  </p>
+                )}
+                <div style={styles.cardFooter}>
+                  <p style={styles.preco}>R$ {item.preco.toFixed(2)}</p>
+                  <button
+                    style={styles.addBtn}
+                    onClick={() => adicionarAoCarrinho(item)}
+                  >
+                    {t("adicionar")}
+                  </button>
+                </div>
+              </div>
             </div>
           ))
         )}
@@ -938,13 +944,94 @@ const styles = {
   tabs: { display: "flex", gap: isMobile ? "5px" : "10px", justifyContent: "center", marginBottom: "25px", flexWrap: "wrap" },
   tabButton: { padding: isMobile ? "8px 12px" : "10px 18px", borderRadius: "10px", border: "2px solid #000", backgroundColor: "#fff", color: "#000", fontWeight: "bold", cursor: "pointer", fontSize: isMobile ? "14px" : "16px" },
   activeTab: { backgroundColor: "#000", color: "#F1B100" },
-  produtos: { display: "flex", flexDirection: "column", gap: "20px" },
-  card: { backgroundColor: "#fff", borderRadius: "15px", padding: isMobile ? "12px" : "15px", textAlign: "center", border: "2px solid #000" },
-  img: { width: "100%", maxWidth: isMobile ? "100%" : "300px", height: "auto", borderRadius: "12px", cursor: "pointer" },
-  cardTitle: { marginTop: "10px", fontSize: isMobile ? "18px" : "20px", fontWeight: "bold", color: "#000" },
-  descricao: { marginTop: "5px", fontSize: isMobile ? "14px" : "16px", color: "#333" },
-  preco: { marginTop: "5px", fontSize: isMobile ? "16px" : "18px", color: "#000" },
-  addBtn: { marginTop: "10px", padding: isMobile ? "8px 16px" : "10px 20px", backgroundColor: "#000", color: "#F1B100", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: isMobile ? "14px" : "16px" },
+  produtos: { 
+    display: "grid", 
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", 
+    gap: isMobile ? "15px" : "20px",
+    maxWidth: "1200px",
+    margin: "0 auto"
+  },
+  card: { 
+    backgroundColor: "#fff", 
+    borderRadius: "15px", 
+    overflow: "hidden",
+    border: "3px solid #000",
+    boxShadow: "4px 4px 0px #000",
+    transition: "transform 0.2s, box-shadow 0.2s",
+    cursor: "pointer",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "6px 6px 0px #000"
+    }
+  },
+  cardImageContainer: {
+    width: "100%",
+    height: isMobile ? "180px" : "220px",
+    overflow: "hidden",
+    backgroundColor: "#f5f5f5",
+    position: "relative"
+  },
+  img: { 
+    width: "100%", 
+    height: "100%",
+    objectFit: "cover",
+    cursor: "pointer",
+    transition: "transform 0.3s",
+    "&:hover": {
+      transform: "scale(1.05)"
+    }
+  },
+  cardContent: {
+    padding: isMobile ? "12px" : "15px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px"
+  },
+  cardTitle: { 
+    fontSize: isMobile ? "18px" : "20px", 
+    fontWeight: "bold", 
+    color: "#000",
+    margin: 0
+  },
+  descricao: { 
+    fontSize: isMobile ? "13px" : "14px", 
+    color: "#666",
+    lineHeight: "1.4",
+    margin: 0,
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden"
+  },
+  cardFooter: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "8px",
+    gap: "10px"
+  },
+  preco: { 
+    fontSize: isMobile ? "18px" : "20px", 
+    color: "#000",
+    fontWeight: "bold",
+    margin: 0
+  },
+  addBtn: { 
+    padding: isMobile ? "8px 16px" : "10px 20px", 
+    backgroundColor: "#000", 
+    color: "#F1B100", 
+    border: "2px solid #000", 
+    borderRadius: "8px", 
+    cursor: "pointer", 
+    fontWeight: "bold", 
+    fontSize: isMobile ? "13px" : "14px",
+    transition: "all 0.2s",
+    whiteSpace: "nowrap",
+    "&:hover": {
+      backgroundColor: "#F1B100",
+      color: "#000"
+    }
+  },
   drawer: { position: "fixed", top: 0, right: 0, width: isMobile ? "100%" : "400px", maxWidth: isMobile ? "100%" : "400px", height: "100vh", backgroundColor: "#fff", borderLeft: "2px solid #000", padding: isMobile ? "10px 15px" : "10px 20px", boxShadow: "-4px 0 10px rgba(0,0,0,0.2)", zIndex: 1000, display: "flex", flexDirection: "column", transition: "transform 0.3s ease", overflowY: "auto", overflow: "visible" },
   abaContainer: { display: "flex", gap: "5px", marginBottom: "15px", flexWrap: isMobile ? "wrap" : "nowrap" },
   abaBtn: { flex: 1, padding: isMobile ? "6px 0" : "8px 0", fontWeight: "bold", cursor: "pointer", borderRadius: "6px", border: "1px solid #000", backgroundColor: "#fff", fontSize: isMobile ? "13px" : "14px", minWidth: isMobile ? "30%" : "auto" },
