@@ -38,6 +38,7 @@ export default function Cardapio() {
   const [pixData, setPixData] = useState(null);
   const [mostrarFormCartao, setMostrarFormCartao] = useState(false);
   const [mostrarRecaptcha, setMostrarRecaptcha] = useState(false);
+  const [mostrarBotaoPix, setMostrarBotaoPix] = useState(true);
   
   // Ponto 4: Hist rico de transa  es
   const [transacoes, setTransacoes] = useState([]);
@@ -754,7 +755,11 @@ export default function Cardapio() {
                   </button>
                   <button 
                     style={{ ...styles.finalizarBtn, backgroundColor: '#666', marginTop: '10px' }} 
-                    onClick={() => setMostrarFormCartao(false)}
+                    onClick={() => {
+                      setMostrarFormCartao(false);
+                      setMostrarRecaptcha(false);
+                      resetRecaptcha();
+                    }}
                   >
                     {t("cancelar")}
                   </button>
@@ -763,17 +768,38 @@ export default function Cardapio() {
             </div>
             <div style={styles.section}>
               <h3>{t("pix")}</h3>
-              <button 
-                style={styles.finalizarBtn} 
-                onClick={() => {
-                  setMostrarRecaptcha(true);
-                  // Aguardar um pouco para o reCAPTCHA renderizar
-                  setTimeout(() => pagarPIX(), 100);
-                }}
-                disabled={loadingPagamento} // Desabilita durante o processamento
-              >
-                {t("pagarComPix")}
-              </button>
+              {mostrarBotaoPix ? (
+                <button 
+                  style={styles.finalizarBtn} 
+                  onClick={() => {
+                    setMostrarBotaoPix(false);
+                    setMostrarRecaptcha(true);
+                  }}
+                  disabled={loadingPagamento}
+                >
+                  {t("pagarComPix")}
+                </button>
+              ) : (
+                <>
+                  <button 
+                    style={styles.finalizarBtn} 
+                    onClick={pagarPIX}
+                    disabled={loadingPagamento}
+                  >
+                    {t("confirmarPagamento")}
+                  </button>
+                  <button 
+                    style={{ ...styles.finalizarBtn, backgroundColor: '#666', marginTop: '10px' }} 
+                    onClick={() => {
+                      setMostrarBotaoPix(true);
+                      setMostrarRecaptcha(false);
+                      resetRecaptcha();
+                    }}
+                  >
+                    {t("cancelar")}
+                  </button>
+                </>
+              )}
             </div>
 
             {/* reCAPTCHA v2 - Central para ambas as opcoes */}
