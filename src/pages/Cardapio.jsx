@@ -944,7 +944,7 @@ const styles = {
   },
   fecharDrawerBtn: { position: "absolute", top: "50%", left: "-32px", transform: "translateY(-50%)", backgroundColor: "#000", color: "#F1B100", border: "2px solid #000", borderRadius: "8px 0 0 8px", width: "32px", height: "32px", fontSize: "14px", cursor: "pointer", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1001, lineHeight: "1" },
   title: { fontSize: isMobile ? "24px" : "32px", fontWeight: "bold", color: "#000", marginBottom: "20px" },
-  tabs: { display: "flex", gap: isMobile ? "5px" : "10px", justifyContent: "center", marginBottom: "25px", flexWrap: "wrap" },
+  tabs: { display: "flex", gap: isMobile ? "5px" : "10px", justifyContent: "center", marginBottom: isMobile ? "30px" : "40px", flexWrap: "wrap" },
   tabButton: { padding: isMobile ? "8px 12px" : "10px 18px", borderRadius: "10px", border: "2px solid #000", backgroundColor: "#fff", color: "#000", fontWeight: "bold", cursor: "pointer", fontSize: isMobile ? "14px" : "16px" },
   activeTab: { backgroundColor: "#000", color: "#F1B100" },
   produtos: { 
@@ -961,15 +961,15 @@ const styles = {
   },
   card: { 
     backgroundColor: "#fff", 
-    borderRadius: "15px", 
+    borderRadius: "20px", 
     overflow: "hidden",
-    border: "3px solid #000",
-    boxShadow: "4px 4px 0px #000",
+    border: "none",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
     transition: "transform 0.2s, box-shadow 0.2s",
     cursor: "pointer",
     "&:hover": {
-      transform: "translateY(-2px)",
-      boxShadow: "6px 6px 0px #000"
+      transform: "translateY(-4px)",
+      boxShadow: "0 8px 20px rgba(0,0,0,0.2)"
     }
   },
   cardImageContainer: {
