@@ -191,6 +191,8 @@ app.put("/api/itens/:id", async (req, res) => {
   const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes, itensCombo } = req.body;
   try {
     console.log("📝 Atualizando item:", id, { nome, preco, peso, selo, ingredientes, itensCombo });
+    console.log("🔍 TIPO de itensCombo recebido:", typeof itensCombo);
+    console.log("🔍 VALOR de itensCombo:", JSON.stringify(itensCombo));
     
     // Deletar ingredientes antigos
     await prisma.itemIngrediente.deleteMany({
