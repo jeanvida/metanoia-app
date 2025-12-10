@@ -252,30 +252,46 @@ export default function AdminHamburgueres() {
         } else {
           descricaoDetalhada = `${quantidade} ${unidadeExibida}`;
         }
-      } else if (ing.unidade === "kg" && ing.pesoPorPorcao) {
-        const pesoTotal = quantidade * parseFloat(ing.pesoPorPorcao);
-        pesoGramas = pesoTotal;
-        
-        // Usar o tipoPorcao definido no ingrediente
-        const tipoPorcao = ing.tipoPorcao || "porção";
-        if (tipoPorcao === "fatia") {
-          unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
-        } else if (tipoPorcao === "unidade") {
-          unidadeExibida = quantidade === 1 ? "un" : "uns";
-        } else if (tipoPorcao === "rodela") {
-          unidadeExibida = quantidade === 1 ? "rodela" : "rodelas";
-        } else if (tipoPorcao === "folha") {
-          unidadeExibida = quantidade === 1 ? "folha" : "folhas";
+      } else if (ing.unidade === "kg") {
+        if (ing.pesoPorPorcao) {
+          // Com porção definida
+          const pesoTotal = quantidade * parseFloat(ing.pesoPorPorcao);
+          pesoGramas = pesoTotal;
+          
+          // Usar o tipoPorcao definido no ingrediente
+          const tipoPorcao = ing.tipoPorcao || "porção";
+          if (tipoPorcao === "fatia") {
+            unidadeExibida = quantidade === 1 ? "fatia" : "fatias";
+          } else if (tipoPorcao === "unidade") {
+            unidadeExibida = quantidade === 1 ? "un" : "uns";
+          } else if (tipoPorcao === "rodela") {
+            unidadeExibida = quantidade === 1 ? "rodela" : "rodelas";
+          } else if (tipoPorcao === "folha") {
+            unidadeExibida = quantidade === 1 ? "folha" : "folhas";
+          } else {
+            unidadeExibida = quantidade === 1 ? "porção" : "porções";
+          }
+          
+          descricaoDetalhada = `${quantidade} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
         } else {
-          unidadeExibida = quantidade === 1 ? "porção" : "porções";
+          // Sem porção - gramas diretas
+          pesoGramas = quantidade;
+          unidadeExibida = "g";
+          descricaoDetalhada = `${quantidade}g`;
         }
-        
-        descricaoDetalhada = `${quantidade} ${unidadeExibida} (${pesoTotal.toFixed(0)}g)`;
-      } else if (ing.unidade === "litro" && ing.pesoPorPorcao) {
-        const volumeTotal = quantidade * parseFloat(ing.pesoPorPorcao);
-        pesoGramas = volumeTotal;
-        unidadeExibida = quantidade === 1 ? "porção" : "porções";
-        descricaoDetalhada = `${quantidade} ${unidadeExibida} (${volumeTotal.toFixed(0)}ml)`;
+      } else if (ing.unidade === "litro") {
+        if (ing.pesoPorPorcao) {
+          // Com porção definida
+          const volumeTotal = quantidade * parseFloat(ing.pesoPorPorcao);
+          pesoGramas = volumeTotal;
+          unidadeExibida = quantidade === 1 ? "porção" : "porções";
+          descricaoDetalhada = `${quantidade} ${unidadeExibida} (${volumeTotal.toFixed(0)}ml)`;
+        } else {
+          // Sem porção - ml diretos
+          pesoGramas = quantidade;
+          unidadeExibida = "ml";
+          descricaoDetalhada = `${quantidade}ml`;
+        }
       }
       
       return {
