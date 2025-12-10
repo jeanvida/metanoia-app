@@ -111,9 +111,9 @@ app.post("/api/init-categorias", async (req, res) => {
 
 // Rotas de itens
 app.post("/api/itens", async (req, res) => {
-  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes } = req.body;
+  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes, itensCombo } = req.body;
   try {
-    console.log("📝 Criando item:", { nome, preco, peso, categoriaId, selo, ingredientes });
+    console.log("📝 Criando item:", { nome, preco, peso, categoriaId, selo, ingredientes, itensCombo });
     
     // 💡 Conversão segura dos dados
     const item = await prisma.itemCardapio.create({
@@ -127,6 +127,7 @@ app.post("/api/itens", async (req, res) => {
         img: img || null,
         selo: selo || null,
         categoriaId,
+        itensCombo: itensCombo || null,  // Salvar itensCombo (JSON)
         ingredientes: ingredientes && ingredientes.length > 0 ? {
           create: ingredientes.map((ing, index) => ({
             ingredienteId: ing.ingredienteId,
@@ -187,9 +188,9 @@ app.put("/api/itens/reordenar", async (req, res) => {
 
 app.put("/api/itens/:id", async (req, res) => {
   const { id } = req.params;
-  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes } = req.body;
+  const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes, itensCombo } = req.body;
   try {
-    console.log("📝 Atualizando item:", id, { nome, preco, peso, selo, ingredientes });
+    console.log("📝 Atualizando item:", id, { nome, preco, peso, selo, ingredientes, itensCombo });
     
     // Deletar ingredientes antigos
     await prisma.itemIngrediente.deleteMany({
@@ -208,6 +209,7 @@ app.put("/api/itens/:id", async (req, res) => {
         img: img || null,
         selo: selo || null,
         categoriaId,
+        itensCombo: itensCombo || null,  // Atualizar itensCombo (JSON)
         ingredientes: ingredientes && ingredientes.length > 0 ? {
           create: ingredientes.map((ing, index) => ({
             ingredienteId: ing.ingredienteId,

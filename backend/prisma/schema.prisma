@@ -28,6 +28,7 @@ model ItemCardapio {
   img         String?
   peso        Int?
   selo        String?
+  itensCombo  Json?        // Array de itens que compõem o combo
   pedidos     PedidoItem[]
   categoria   Categoria    @relation(fields: [categoriaId], references: [id])
   ingredientes ItemIngrediente[]
