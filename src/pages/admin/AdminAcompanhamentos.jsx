@@ -26,6 +26,7 @@ export default function AdminAcompanhamentos() {
     descricaoES: "",
     descricaoEN: "",
     preco: "",
+    selo: "",
     foto: "",
   });
 
@@ -67,6 +68,7 @@ export default function AdminAcompanhamentos() {
             descricaoES: form.descricaoES,
             descricaoEN: form.descricaoEN,
             preco: Number(form.preco),
+            selo: form.selo || null,
             // img: form.foto || "", // Remover base64 muito grande
             categoriaId: categoriaId || 3,
           }),
@@ -81,6 +83,7 @@ export default function AdminAcompanhamentos() {
             descricaoES: "",
             descricaoEN: "",
             preco: "",
+            selo: "",
             foto: "",
           });
         } else {
@@ -139,6 +142,21 @@ export default function AdminAcompanhamentos() {
           value={form.preco}
           onChange={(e) => setForm({ ...form, preco: e.target.value })}
         />
+
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Selo (opcional)
+          </label>
+          <select
+            style={styles.input}
+            value={form.selo}
+            onChange={(e) => setForm({ ...form, selo: e.target.value })}
+          >
+            <option value="">Nenhum</option>
+            <option value="maisVendido">Mais Vendido</option>
+            <option value="especialSemana">Especial da Semana</option>
+          </select>
+        </div>
 
         <input
           style={styles.input}

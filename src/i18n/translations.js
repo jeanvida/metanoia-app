@@ -66,6 +66,10 @@ export const translations = {
     remover: "Remover",
     voltar: "Voltar",
     fechar: "Fechar",
+    
+    // Selos
+    maisVendido: "Mais Vendido",
+    especialSemana: "Especial da Semana",
   },
   
   es: {
@@ -135,6 +139,10 @@ export const translations = {
     remover: "Eliminar",
     voltar: "Volver",
     fechar: "Cerrar",
+    
+    // Selos
+    maisVendido: "Más Vendido",
+    especialSemana: "Especial de la Semana",
   },
   
   en: {
@@ -204,6 +212,10 @@ export const translations = {
     remover: "Remove",
     voltar: "Back",
     fechar: "Close",
+    
+    // Selos
+    maisVendido: "Best Seller",
+    especialSemana: "Special of the Week",
   }
 };
 

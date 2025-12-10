@@ -27,6 +27,7 @@ export default function AdminHamburgueres() {
     descricaoEN: "",
     peso: "",
     preco: "",
+    selo: "",
     ingredientes: [],
     foto: "",
   });
@@ -140,6 +141,7 @@ export default function AdminHamburgueres() {
             descricaoEN: form.descricaoEN || null,
             preco: Number(form.preco),
             peso: form.peso ? parseInt(form.peso, 10) : null,
+            selo: form.selo || null,
             // img: form.foto || "", // Remover base64 muito grande - usar URL depois
             categoriaId: categoriaId || 1,
           }),
@@ -159,6 +161,7 @@ export default function AdminHamburgueres() {
             descricaoEN: "",
             peso: "",
             preco: "",
+            selo: "",
             ingredientes: [],
             foto: "",
           });
@@ -231,6 +234,21 @@ export default function AdminHamburgueres() {
             value={form.preco}
             onChange={(e) => setForm({ ...form, preco: e.target.value })}
           />
+        </div>
+
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Selo (opcional)
+          </label>
+          <select
+            style={styles.input}
+            value={form.selo}
+            onChange={(e) => setForm({ ...form, selo: e.target.value })}
+          >
+            <option value="">Nenhum</option>
+            <option value="maisVendido">Mais Vendido</option>
+            <option value="especialSemana">Especial da Semana</option>
+          </select>
         </div>
 
         <h3>Ingredientes</h3>

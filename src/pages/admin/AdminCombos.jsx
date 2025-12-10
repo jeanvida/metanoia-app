@@ -26,6 +26,7 @@ export default function AdminCombos() {
     descricaoES: "",
     descricaoEN: "",
     preco: "",
+    selo: "",
     itens: [],
     foto: "",
   });
@@ -84,6 +85,7 @@ export default function AdminCombos() {
             descricaoES: form.descricaoES,
             descricaoEN: form.descricaoEN,
             preco: Number(form.preco),
+            selo: form.selo || null,
             // img: form.foto || "", // Remover base64 muito grande
             categoriaId: categoriaId || 2,
           }),
@@ -98,6 +100,7 @@ export default function AdminCombos() {
             descricaoES: "",
             descricaoEN: "",
             preco: "",
+            selo: "",
             itens: [],
             foto: "",
           });
@@ -156,6 +159,21 @@ export default function AdminCombos() {
           value={form.preco}
           onChange={(e) => setForm({ ...form, preco: e.target.value })}
         />
+
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Selo (opcional)
+          </label>
+          <select
+            style={styles.input}
+            value={form.selo}
+            onChange={(e) => setForm({ ...form, selo: e.target.value })}
+          >
+            <option value="">Nenhum</option>
+            <option value="maisVendido">Mais Vendido</option>
+            <option value="especialSemana">Especial da Semana</option>
+          </select>
+        </div>
 
         <h3>Itens do Combo</h3>
 

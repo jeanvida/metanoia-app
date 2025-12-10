@@ -435,6 +435,14 @@ export default function Cardapio() {
           produtos[categoriaAtiva] && produtos[categoriaAtiva].map((item) => (
             <div key={item.id} style={styles.card}>
               <div style={styles.cardImageContainer}>
+                {item.selo && (
+                  <div style={{
+                    ...styles.selo,
+                    ...(item.selo === 'maisVendido' ? styles.seloMaisVendido : styles.seloEspecial)
+                  }}>
+                    {t(item.selo)}
+                  </div>
+                )}
                 <img
                   src={item.img}
                   alt={item.nome}
@@ -1057,5 +1065,26 @@ const styles = {
   modalContent: { position: "relative", backgroundColor: "#fff", padding: isMobile ? "15px" : "20px", borderRadius: "15px", border: "3px solid #000", maxWidth: isMobile ? "95%" : "auto" },
   modalImg: { width: "100%", maxWidth: isMobile ? "100%" : "600px", height: "auto", borderRadius: "12px" },
   closeBtn: { position: "absolute", top: "10px", right: "10px", background: "#000", color: "#F1B100", border: "none", padding: isMobile ? "4px 8px" : "5px 10px", cursor: "pointer", borderRadius: "5px", fontWeight: "bold", fontSize: isMobile ? "12px" : "14px" },
+  selo: {
+    position: "absolute",
+    top: "10px",
+    right: "10px",
+    padding: isMobile ? "5px 10px" : "6px 12px",
+    borderRadius: "20px",
+    fontWeight: "bold",
+    fontSize: isMobile ? "10px" : "11px",
+    zIndex: 10,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px"
+  },
+  seloMaisVendido: {
+    backgroundColor: "#F1B100",
+    color: "#000"
+  },
+  seloEspecial: {
+    backgroundColor: "#FF4444",
+    color: "#fff"
+  }
 };
 
