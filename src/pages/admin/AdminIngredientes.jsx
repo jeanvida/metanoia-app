@@ -258,52 +258,56 @@ export default function AdminIngredientes() {
             </label>
             <input
               style={styles.input}
-              placeholder="Ex: 80 (para 1 pão = 80g)"
+              placeholder="Ex: 250 (1 pé de alface = 250g)"
               type="number"
               step="0.1"
               value={form.pesoMedioPorUnidade}
               onChange={(e) => setForm({ ...form, pesoMedioPorUnidade: e.target.value })}
             />
             <small style={{ display: "block", marginTop: "5px", color: "#856404" }}>
-              💡 Use este campo quando o item é comprado POR UNIDADE (ex: pão, sachê)
+              💡 Informe o peso médio de 1 unidade
             </small>
             
-            <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px dashed #ffc107" }}>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
-                Quantas porções tem em 1 unidade? - Opcional
-              </label>
-              <input
-                style={styles.input}
-                placeholder="Ex: 20 (1 pé de alface = 20 folhas)"
-                type="number"
-                step="0.1"
-                value={form.pesoPorPorcao}
-                onChange={(e) => setForm({ ...form, pesoPorPorcao: e.target.value })}
-              />
-              
-              {form.pesoPorPorcao && (
-                <div style={{ marginTop: "15px" }}>
-                  <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
-                    Como chamar essa porção?
-                  </label>
-                  <select
-                    style={styles.input}
-                    value={form.tipoPorcao}
-                    onChange={(e) => setForm({ ...form, tipoPorcao: e.target.value })}
-                  >
-                    <option value="porção">Porção (ex: 1 porção, 2 porções)</option>
-                    <option value="fatia">Fatia (ex: 1 fatia, 2 fatias)</option>
-                    <option value="unidade">Unidade (ex: 1 un, 2 uns)</option>
-                    <option value="rodela">Rodela (ex: 1 rodela, 2 rodelas)</option>
-                    <option value="folha">Folha (ex: 1 folha, 2 folhas)</option>
-                  </select>
-                </div>
-              )}
-              
-              <small style={{ display: "block", marginTop: "5px", color: "#856404" }}>
-                💡 Exemplo: Alface comprado por unidade (R$3,00/pé), mas você usa por folhas (1 pé = 20 folhas)
-              </small>
-            </div>
+            {form.pesoMedioPorUnidade && (
+              <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px dashed #ffc107" }}>
+                <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+                  Gramas por Porção - Opcional
+                </label>
+                <input
+                  style={styles.input}
+                  placeholder="Ex: 20 (você usa 20g por porção)"
+                  type="number"
+                  step="0.1"
+                  value={form.pesoPorPorcao}
+                  onChange={(e) => setForm({ ...form, pesoPorPorcao: e.target.value })}
+                />
+                
+                {form.pesoPorPorcao && (
+                  <div style={{ marginTop: "15px" }}>
+                    <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+                      Como chamar essa porção?
+                    </label>
+                    <select
+                      style={styles.input}
+                      value={form.tipoPorcao}
+                      onChange={(e) => setForm({ ...form, tipoPorcao: e.target.value })}
+                    >
+                      <option value="porção">Porção (ex: 1 porção, 2 porções)</option>
+                      <option value="fatia">Fatia (ex: 1 fatia, 2 fatias)</option>
+                      <option value="unidade">Unidade (ex: 1 un, 2 uns)</option>
+                      <option value="rodela">Rodela (ex: 1 rodela, 2 rodelas)</option>
+                      <option value="folha">Folha (ex: 1 folha, 2 folhas)</option>
+                    </select>
+                  </div>
+                )}
+                
+                <small style={{ display: "block", marginTop: "5px", color: "#856404" }}>
+                  💡 Exemplo: 1 pé de alface = 250g, você usa 20g por porção
+                  <br />
+                  → Ao adicionar 1 porção, o sistema calcula: 20g ÷ 250g = 0,08 unidades
+                </small>
+              </div>
+            )}
           </div>
         )}
 
