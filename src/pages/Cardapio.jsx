@@ -112,9 +112,9 @@ export default function Cardapio() {
     carregarTransacoes();
   }, []); // Executa apenas na montagem
 
-  // Renderizar reCAPTCHA quando a aba de pagamento for aberta ou quando abrir o formulário de cartão
+  // Renderizar reCAPTCHA quando a aba de pagamento for aberta
   useEffect(() => {
-    if (abaAtiva === "pagamento" && SITE_KEY && recaptchaRef.current && mostrarFormCartao && !recaptchaRef.current.hasChildNodes()) {
+    if (abaAtiva === "pagamento" && SITE_KEY && recaptchaRef.current && !recaptchaRef.current.hasChildNodes()) {
       try {
         window.grecaptcha.render(recaptchaRef.current, {
           sitekey: SITE_KEY,
@@ -123,7 +123,7 @@ export default function Cardapio() {
         console.error("Erro ao renderizar reCAPTCHA:", error);
       }
     }
-  }, [abaAtiva, mostrarFormCartao]);
+  }, [abaAtiva]);
 
   // ===== Carrinho (L gica de localStorage mantida) =====
   const [carrinho, setCarrinho] = useState([]);
@@ -769,7 +769,7 @@ export default function Cardapio() {
             </div>
 
             {/* reCAPTCHA v2 - Central para ambas as opcoes */}
-            {mostrarFormCartao && SITE_KEY && (
+            {SITE_KEY && (
               <div style={styles.section}>
                 <div style={{ margin: '15px 0' }}>
                   <div ref={recaptchaRef}></div>
