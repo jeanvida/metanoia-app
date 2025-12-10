@@ -55,7 +55,7 @@ export default function Admin() {
   }
 
   // Se estiver logado → mostra painel admin
-  const categorias = ["hambúrgueres", "combos", "acompanhamentos", "bebidas"];
+  const categorias = ["hamburgueres", "combos", "acompanhamentos", "bebidas"];
   const outros = ["ingredientes", "pedidos"];
 
   return (
@@ -69,17 +69,27 @@ export default function Admin() {
       </button>
 
       <div style={styles.grid}>
-        {categorias.map((cat) => (
-          <div key={cat} style={styles.card}>
-            <h3 style={styles.cardTitle}>
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-            </h3>
+        {categorias.map((cat) => {
+          // Mapa para exibir nomes com acentuação correta
+          const nomeExibicao = {
+            hamburgueres: "Hambúrgueres",
+            combos: "Combos",
+            acompanhamentos: "Acompanhamentos",
+            bebidas: "Bebidas"
+          };
+          
+          return (
+            <div key={cat} style={styles.card}>
+              <h3 style={styles.cardTitle}>
+                {nomeExibicao[cat] || cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </h3>
 
-            <Link to={`/admin/${cat}`} style={styles.manageBtn}>
-              Gerenciar
-            </Link>
-          </div>
-        ))}
+              <Link to={`/admin/${cat}`} style={styles.manageBtn}>
+                Gerenciar
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       <h2 style={styles.sectionTitle}>Operações</h2>
