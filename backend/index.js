@@ -240,6 +240,10 @@ app.get("/api/itens", async (req, res) => {
         }
       },
     });
+    console.log("📦 Retornando itens:", itens.length, "itens");
+    if (itens.length > 0) {
+      console.log("📦 Exemplo de item com ingredientes:", JSON.stringify(itens[0], null, 2));
+    }
     res.json(itens);
   } catch (error) {
     res.status(400).json({ error: error.message });
