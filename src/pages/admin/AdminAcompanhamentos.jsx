@@ -20,6 +20,7 @@ export default function AdminAcompanhamentos() {
 
   const [acomp, setAcomp] = useState([]);
   const [categoriaId, setCategoriaId] = useState(null);
+  const [editandoId, setEditandoId] = useState(null);
   const [form, setForm] = useState({
     nome: "",
     descricao: "",
@@ -51,6 +52,53 @@ export default function AdminAcompanhamentos() {
     inicializar();
   }, []);
 
+  function editarAcompanhamento(acompanhamento) {
+    setEditandoId(acompanhamento.id);
+    setForm({
+      nome: acompanhamento.nome,
+      descricao: acompanhamento.descricao || "",
+      descricaoES: acompanhamento.descricaoES || "",
+      descricaoEN: acompanhamento.descricaoEN || "",
+      preco: String(acompanhamento.preco),
+      selo: acompanhamento.selo || "",
+      foto: acompanhamento.img || "",
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicao() {
+    setEditandoId(null);
+    setForm({
+      nome: "",
+      descricao: "",
+      descricaoES: "",
+      descricaoEN: "",
+      preco: "",
+      selo: "",
+      foto: "",
+    });
+  }
+
+  async function deletarAcompanhamento(id) {
+    if (!confirm('Tem certeza que deseja deletar este acompanhamento?')) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/itens/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Acompanhamento deletado com sucesso!');
+        setAcomp(prev => prev.filter(a => a.id !== id));
+      } else {
+        alert('Erro ao deletar acompanhamento');
+      }
+    } catch (error) {
+      console.error('Erro ao deletar:', error);
+      alert('Erro ao conectar com o servidor');
+    }
+  }
+
   function salvar() {
     if (!form.nome || !form.preco) {
       alert("Preencha nome e preço");
@@ -59,8 +107,11 @@ export default function AdminAcompanhamentos() {
 
     const enviarBackend = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/itens`, {
-          method: "POST",
+        const url = editandoId ? `${API_URL}/api/itens/${editandoId}` : `${API_URL}/api/itens`;
+        const method = editandoId ? "PUT" : "POST";
+        
+        const response = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             nome: form.nome,
@@ -75,8 +126,16 @@ export default function AdminAcompanhamentos() {
         });
 
         if (response.ok) {
-          alert("Acompanhamento cadastrado com sucesso!");
-          setAcomp((prev) => [...prev, form]);
+          const mensagem = editandoId ? "Acompanhamento atualizado com sucesso!" : "Acompanhamento cadastrado com sucesso!";
+          alert(mensagem);
+          
+          const recarregar = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos`);
+          if (recarregar.ok) {
+            const data = await recarregar.json();
+            setAcomp(data);
+          }
+          
+          setEditandoId(null);
           setForm({
             nome: "",
             descricao: "",
@@ -165,9 +224,16 @@ export default function AdminAcompanhamentos() {
           onChange={(e) => setForm({ ...form, foto: e.target.value })}
         />
 
-        <button style={styles.saveBtn} onClick={salvar}>
-          Salvar
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button style={styles.saveBtn} onClick={salvar}>
+            {editandoId ? 'Atualizar Acompanhamento' : 'Salvar Acompanhamento'}
+          </button>
+          {editandoId && (
+            <button style={styles.cancelBtn} onClick={cancelarEdicao}>
+              Cancelar
+            </button>
+          )}
+        </div>
       </div>
 
       <h2 style={styles.subtitle}>Acompanhamentos Cadastrados</h2>
@@ -176,9 +242,21 @@ export default function AdminAcompanhamentos() {
 
       {acomp.map((a, i) => (
         <div key={i} style={styles.itemCard}>
-          <strong>{a.nome}</strong> — R${a.preco}
-          <br />
-          <small>{a.descricao}</small>
+          <div style={{ flex: 1 }}>
+            <strong>{a.nome}</strong> — R${Number(a.preco).toFixed(2)}
+            {a.selo && <span style={styles.seloTag}> • {a.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
+            <br />
+            <small>{a.descricao}</small>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <button style={styles.editBtn} onClick={() => editarAcompanhamento(a)}>
+              ✏️ Editar
+            </button>
+            <button style={styles.deleteBtn} onClick={() => deletarAcompanhamento(a.id)}>
+              🗑️
+            </button>
+          </div>
         </div>
       ))}
     </div>
@@ -232,7 +310,7 @@ const styles = {
   },
   saveBtn: {
     marginTop: "20px",
-    width: "100%",
+    flex: 1,
     background: "#000",
     color: "#F1B100",
     padding: "12px",
@@ -241,5 +319,51 @@ const styles = {
     fontWeight: "bold",
     border: "none",
     cursor: "pointer",
+  },
+  cancelBtn: {
+    marginTop: "20px",
+    flex: 1,
+    background: "#666",
+    color: "#fff",
+    padding: "12px",
+    borderRadius: "10px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    border: "none",
+    cursor: "pointer",
+  },
+  itemCard: {
+    background: "#fff",
+    padding: "12px",
+    marginTop: "10px",
+    borderRadius: "10px",
+    border: "2px solid #000",
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+  },
+  editBtn: {
+    background: "#000",
+    color: "#F1B100",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "none",
+    fontWeight: "600",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  deleteBtn: {
+    background: "#c62828",
+    color: "#fff",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "16px",
+  },
+  seloTag: {
+    color: "#F1B100",
+    fontWeight: "bold",
+    fontSize: "12px",
   },
 };
