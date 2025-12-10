@@ -43,6 +43,7 @@ model Ingrediente {
   precoEmbalagem          Decimal? @db.Decimal(10, 2)
   pesoMedioPorUnidade     Decimal? @db.Decimal(10, 3) // Para itens como pão (1 un = 80g) quando comprado por unidade
   pesoPorPorcao           Decimal? @db.Decimal(10, 3) // Para itens comprados em kg/litro mas porcionados (ex: queijo 1 fatia = 15g, carne 1 disco = 70g)
+  tipoPorcao              String?  // "fatia", "unidade", "porção" - como chamar a porção ao adicionar no produto
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   itens                   ItemIngrediente[]
