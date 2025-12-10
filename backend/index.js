@@ -381,7 +381,17 @@ app.patch("/api/pedidos/:id/status", async (req, res) => {
 // Rota para atualizar ordem dos itens
 app.put("/api/itens/reordenar", async (req, res) => {
   try {
+    console.log("📥 Recebendo request para reordenar itens");
+    console.log("📦 Body recebido:", JSON.stringify(req.body, null, 2));
+    
     const { itens } = req.body; // Array de { id, ordem }
+    
+    if (!itens || !Array.isArray(itens)) {
+      console.error("❌ Formato inválido - itens não é um array");
+      return res.status(400).json({ error: "itens deve ser um array" });
+    }
+    
+    console.log(`🔄 Atualizando ordem de ${itens.length} itens`);
     
     await prisma.$transaction(
       itens.map((item) =>
@@ -392,9 +402,10 @@ app.put("/api/itens/reordenar", async (req, res) => {
       )
     );
     
+    console.log("✅ Ordem atualizada com sucesso!");
     res.json({ success: true });
   } catch (error) {
-    console.error("Erro ao reordenar itens:", error);
+    console.error("❌ Erro ao reordenar itens:", error);
     res.status(500).json({ error: error.message });
   }
 });
