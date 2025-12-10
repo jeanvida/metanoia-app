@@ -1015,12 +1015,9 @@ const styles = {
   descricao: { 
     fontSize: isMobile ? "13px" : "14px", 
     color: "#666",
-    lineHeight: "1.4",
+    lineHeight: "1.5",
     margin: 0,
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden"
+    minHeight: "65px"
   },
   cardFooter: {
     display: "flex",
