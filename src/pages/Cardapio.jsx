@@ -1017,7 +1017,11 @@ const styles = {
     color: "#666",
     lineHeight: "1.5",
     margin: 0,
-    minHeight: "65px"
+    minHeight: "65px",
+    display: "block",
+    overflow: "visible",
+    whiteSpace: "normal",
+    textOverflow: "clip"
   },
   cardFooter: {
     display: "flex",
