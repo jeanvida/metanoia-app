@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import SortableItem from "../../components/SortableItem";
+import { SortableItem } from "../../components/SortableItem";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
@@ -354,13 +354,6 @@ const styles = {
     borderRadius: "12px",
     marginBottom: "30px",
     marginTop: "30px",
-  },
-  itemCard: {
-    background: "#fff",
-    padding: "15px",
-    marginTop: "10px",
-    borderRadius: "10px",
-    border: "2px solid #000",
   },
   input: {
     width: "100%",
