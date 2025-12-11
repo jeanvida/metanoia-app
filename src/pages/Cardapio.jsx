@@ -455,11 +455,43 @@ export default function Cardapio() {
         ...(produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 1 ? styles.produtosUnico : {})
       }}>
         {loadingProdutos ? (
-          <div style={{ textAlign: "center", padding: "40px" }}>
-            <p style={{ fontSize: "18px", color: "#666" }}>⏳ Carregando cardápio...</p>
-            <p style={{ fontSize: "14px", color: "#999", marginTop: "10px" }}>
+          <div style={{
+            background: '#F1B100',
+            border: '3px solid #000',
+            borderRadius: '15px',
+            padding: '40px 30px',
+            textAlign: 'center',
+            maxWidth: '400px',
+            margin: '60px auto',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+          }}>
+            <div style={{
+              fontSize: '48px',
+              marginBottom: '20px',
+              animation: 'spin 2s linear infinite',
+              display: 'inline-block'
+            }}>⏰</div>
+            <p style={{ 
+              fontSize: '20px', 
+              color: '#000', 
+              fontWeight: 'bold',
+              margin: '10px 0'
+            }}>
+              Carregando cardápio...
+            </p>
+            <p style={{ 
+              fontSize: '14px', 
+              color: '#333', 
+              marginTop: '10px'
+            }}>
               Isso pode levar alguns segundos
             </p>
+            <style>{`
+              @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
           </div>
         ) : produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 0 ? (
           <p style={{ textAlign: "center" }}>
