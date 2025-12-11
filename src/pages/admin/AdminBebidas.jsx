@@ -469,6 +469,9 @@ export default function AdminBebidas() {
             return (
               <SortableItem key={b.id} id={b.id}>
                 <div style={styles.itemCard}>
+                  <div style={{ fontSize: "20px", color: "#999", cursor: "grab", marginRight: "10px" }}>
+                    ⋮⋮
+                  </div>
                   <div style={{ flex: 1 }}>
                     <strong>{b.nome}</strong> — R${Number(b.preco).toFixed(2)}
                     {b.ingredientes && b.ingredientes.length > 0 && (
