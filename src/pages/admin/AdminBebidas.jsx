@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VoltarBtn from "../../components/VoltarBtn";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import SortableItem from "../../components/SortableItem";
 
 const API_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
@@ -27,9 +30,16 @@ export default function AdminBebidas() {
     descricaoES: "",
     descricaoEN: "",
     preco: "",
+    custo: "",
     selo: "",
     foto: "",
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
 
   useEffect(() => {
     const inicializar = async () => {
@@ -60,6 +70,7 @@ export default function AdminBebidas() {
       descricaoES: bebida.descricaoES || "",
       descricaoEN: bebida.descricaoEN || "",
       preco: String(bebida.preco),
+      custo: String(bebida.custo || ""),
       selo: bebida.selo || "",
       foto: bebida.img || "",
     });
@@ -74,6 +85,7 @@ export default function AdminBebidas() {
       descricaoES: "",
       descricaoEN: "",
       preco: "",
+      custo: "",
       selo: "",
       foto: "",
     });
@@ -131,6 +143,7 @@ export default function AdminBebidas() {
             descricaoES: form.descricaoES,
             descricaoEN: form.descricaoEN,
             preco: Number(form.preco),
+            custo: form.custo ? Number(form.custo) : null,
             selo: form.selo || null,
             img: form.foto || "",
             categoriaId: categoriaId || 4,
@@ -154,6 +167,7 @@ export default function AdminBebidas() {
             descricaoES: "",
             descricaoEN: "",
             preco: "",
+            custo: "",
             selo: "",
             foto: "",
           });
@@ -168,6 +182,29 @@ export default function AdminBebidas() {
     };
 
     enviarBackend();
+  }
+
+  async function handleDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = bebidas.findIndex((b) => b.id === active.id);
+    const newIndex = bebidas.findIndex((b) => b.id === over.id);
+
+    const novaOrdem = arrayMove(bebidas, oldIndex, newIndex);
+    setBebidas(novaOrdem);
+
+    try {
+      for (let i = 0; i < novaOrdem.length; i++) {
+        await fetch(`${API_URL}/api/itens/${novaOrdem[i].id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ordem: i + 1 }),
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar ordem:", error);
+    }
   }
 
   return (
@@ -208,9 +245,16 @@ export default function AdminBebidas() {
 
         <input
           style={styles.input}
-          placeholder="Preço (R$)"
+          placeholder="Preço de Venda (R$)"
           value={form.preco}
           onChange={(e) => setForm({ ...form, preco: e.target.value })}
+        />
+
+        <input
+          style={styles.input}
+          placeholder="Custo (R$) - opcional"
+          value={form.custo}
+          onChange={(e) => setForm({ ...form, custo: e.target.value })}
         />
 
         <div style={{ marginBottom: "15px", marginTop: "25px" }}>
@@ -253,25 +297,37 @@ export default function AdminBebidas() {
 
       {bebidas.length === 0 && <p>Nenhuma bebida cadastrada.</p>}
 
-      {bebidas.map((b, i) => (
-        <div key={i} style={styles.itemCard}>
-          <div style={{ flex: 1 }}>
-            <strong>{b.nome}</strong> — R${Number(b.preco).toFixed(2)}
-            {b.selo && <span style={styles.seloTag}> • {b.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
-            <br />
-            <small>{b.descricao}</small>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <button style={styles.editBtn} onClick={() => editarBebida(b)}>
-              ✏️ Editar
-            </button>
-            <button style={styles.deleteBtn} onClick={() => deletarBebida(b.id)}>
-              🗑️
-            </button>
-          </div>
-        </div>
-      ))}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={bebidas.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+          {bebidas.map((b) => (
+            <SortableItem key={b.id} id={b.id}>
+              <div style={styles.itemCard}>
+                <div style={{ flex: 1 }}>
+                  <strong>{b.nome}</strong> — R${Number(b.preco).toFixed(2)}
+                  {b.custo && (
+                    <span style={styles.custoTag}>
+                      {" • Custo: R$"}{Number(b.custo).toFixed(2)}
+                      {" • Lucro: R$"}{(Number(b.preco) - Number(b.custo)).toFixed(2)}
+                    </span>
+                  )}
+                  {b.selo && <span style={styles.seloTag}> • {b.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
+                  <br />
+                  <small>{b.descricao}</small>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                  <button style={styles.editBtn} onClick={() => editarBebida(b)}>
+                    ✏️ Editar
+                  </button>
+                  <button style={styles.deleteBtn} onClick={() => deletarBebida(b.id)}>
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </SortableItem>
+          ))}
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
@@ -398,6 +454,11 @@ const styles = {
     color: "#F1B100",
     fontWeight: "bold",
     fontSize: "12px",
+  },
+  custoTag: {
+    color: "#666",
+    fontSize: "12px",
+    fontWeight: "600",
   },
   fileLabel: {
     display: "block",
