@@ -377,7 +377,83 @@ export default function Cardapio() {
     } finally {
       setLoadingPagamento(false);
     }
-  }  return (
+  }
+
+  async function finalizarPedidoTeste() {
+    setLoadingPagamento(true);
+    setStatusPagamento("Validando segurança...");
+
+    // Obter token reCAPTCHA
+    const recaptchaToken = getRecaptchaToken();
+    if (!recaptchaToken) {
+      setStatusPagamento("Erro: Complete a verificação do reCAPTCHA antes de continuar.");
+      setLoadingPagamento(false);
+      return;
+    }
+
+    // Validar dados do cliente
+    if (!cliente.nome || !cliente.telefone) {
+      setStatusPagamento("Erro: Preencha nome e telefone.");
+      setLoadingPagamento(false);
+      return;
+    }
+
+    setStatusPagamento("Processando pedido...");
+
+    const dadosPedido = {
+      clienteNome: cliente.nome,
+      clienteEmail: cliente.email || null,
+      clienteTelefone: cliente.telefone,
+      clienteCPF: cliente.cpf || null,
+      endereco: `${cliente.endereco || ''}, ${cliente.bairro || ''}, ${cliente.cidade || ''} - ${cliente.uf || ''}`.trim(),
+      cep: cliente.cep || null,
+      frete: frete.valor,
+      total: total + frete.valor,
+      observacao: null,
+      itens: carrinho.map(item => ({
+        id: item.id,
+        quantidade: item.quantidade,
+        preco: item.preco
+      }))
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/api/pedidos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dadosPedido),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao criar pedido.');
+      }
+      
+      const pedidoCriado = await response.json();
+      
+      setStatusPagamento(`✅ Pedido #${pedidoCriado.id.substring(0,8)} criado com sucesso!`);
+      
+      // Limpar carrinho
+      setCarrinho([]);
+      
+      // Voltar para o carrinho vazio
+      setTimeout(() => {
+        setAbaAtiva("carrinho");
+        setDrawerAberto(false);
+        setStatusPagamento("");
+        setMostrarRecaptcha(false);
+        resetRecaptcha();
+      }, 3000);
+      
+    } catch (err) {
+      console.error("Erro ao finalizar pedido teste:", err);
+      setStatusPagamento(`Falha: ${err.message}`);
+    } finally {
+      setLoadingPagamento(false);
+      resetRecaptcha();
+    }
+  }
+
+  return (
     <div style={styles.container}>
 
       {/* Seletor de Idioma */}
@@ -885,6 +961,29 @@ export default function Cardapio() {
                   </button>
                 </>
               )}
+            </div>
+
+            {/* Botão de Teste - Finalizar sem pagamento */}
+            <div style={styles.section}>
+              <h3 style={{ color: '#F1B100', borderTop: '2px solid #F1B100', paddingTop: '15px', marginTop: '20px' }}>
+                🧪 Modo Teste
+              </h3>
+              <p style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>
+                Finalizar pedido sem integração de pagamento
+              </p>
+              <button 
+                style={{ ...styles.finalizarBtn, background: '#F1B100', color: '#000' }} 
+                onClick={() => {
+                  if (!mostrarRecaptcha) {
+                    setMostrarRecaptcha(true);
+                  } else {
+                    finalizarPedidoTeste();
+                  }
+                }}
+                disabled={loadingPagamento}
+              >
+                {!mostrarRecaptcha ? 'Finalizar Pagamento Teste' : 'Confirmar Pedido (Teste)'}
+              </button>
             </div>
 
             {/* reCAPTCHA v2 - Central para ambas as opcoes */}
