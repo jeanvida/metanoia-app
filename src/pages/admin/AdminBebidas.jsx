@@ -285,13 +285,23 @@ export default function AdminBebidas() {
     const novaOrdem = arrayMove(bebidas, oldIndex, newIndex);
     setBebidas(novaOrdem);
 
+    // Salvar nova ordem no backend usando a rota específica
+    const updates = novaOrdem.map((item, index) => ({
+      id: item.id,
+      ordem: index
+    }));
+
     try {
-      for (let i = 0; i < novaOrdem.length; i++) {
-        await fetch(`${API_URL}/api/itens/${novaOrdem[i].id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ordem: i + 1 }),
-        });
+      const response = await fetch(`${API_URL}/api/itens/reordenar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itens: updates })
+      });
+
+      if (response.ok) {
+        console.log('✅ Ordem das bebidas salva com sucesso!');
+      } else {
+        console.error('❌ Erro ao salvar ordem:', response.status);
       }
     } catch (error) {
       console.error("Erro ao atualizar ordem:", error);
