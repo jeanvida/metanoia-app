@@ -456,14 +456,18 @@ export default function Cardapio() {
       }}>
         {loadingProdutos ? (
           <div style={{
-            background: '#F1B100',
+            background: '#fff',
             border: '3px solid #000',
             borderRadius: '15px',
             padding: '40px 30px',
             textAlign: 'center',
             maxWidth: '400px',
             margin: '60px auto',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)'
           }}>
             <div style={{
               fontSize: '48px',
@@ -481,7 +485,7 @@ export default function Cardapio() {
             </p>
             <p style={{ 
               fontSize: '14px', 
-              color: '#333', 
+              color: '#666', 
               marginTop: '10px'
             }}>
               Isso pode levar alguns segundos
