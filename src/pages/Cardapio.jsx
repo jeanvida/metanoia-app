@@ -156,6 +156,20 @@ export default function Cardapio() {
     }
   }, [mostrarRecaptcha]);
 
+  // Resetar modo teste quando sair da aba de pagamento
+  useEffect(() => {
+    if (abaAtiva !== "pagamento") {
+      setModoTeste(false);
+      setMostrarRecaptcha(false);
+      setMostrarFormCartao(false);
+      setMostrarBotaoPix(true);
+      setStatusPagamento("");
+      if (window.grecaptcha) {
+        resetRecaptcha();
+      }
+    }
+  }, [abaAtiva]);
+
   // ===== Carrinho (L gica de localStorage mantida) =====
   const [carrinho, setCarrinho] = useState([]);
 
