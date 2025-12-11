@@ -40,6 +40,7 @@ export default function Cardapio() {
   const [mostrarFormCartao, setMostrarFormCartao] = useState(false);
   const [mostrarRecaptcha, setMostrarRecaptcha] = useState(false);
   const [mostrarBotaoPix, setMostrarBotaoPix] = useState(true);
+  const [modoTeste, setModoTeste] = useState(false); // Controle do botão teste
   
   // Ponto 4: Hist rico de transa  es
   const [transacoes, setTransacoes] = useState([]);
@@ -441,6 +442,7 @@ export default function Cardapio() {
         setDrawerAberto(false);
         setStatusPagamento("");
         setMostrarRecaptcha(false);
+        setModoTeste(false);
         resetRecaptcha();
       }, 3000);
       
@@ -864,6 +866,7 @@ export default function Cardapio() {
                   onClick={() => {
                     setMostrarFormCartao(true);
                     setMostrarRecaptcha(true);
+                    setModoTeste(false);
                   }}
                 >
                   {t("pagarComCartao")}
@@ -935,6 +938,7 @@ export default function Cardapio() {
                   onClick={() => {
                     setMostrarBotaoPix(false);
                     setMostrarRecaptcha(true);
+                    setModoTeste(false);
                   }}
                   disabled={loadingPagamento}
                 >
@@ -971,19 +975,28 @@ export default function Cardapio() {
               <p style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>
                 Finalizar pedido sem integração de pagamento
               </p>
-              <button 
-                style={{ ...styles.finalizarBtn, background: '#F1B100', color: '#000' }} 
-                onClick={() => {
-                  if (!mostrarRecaptcha) {
+              {!modoTeste ? (
+                <button 
+                  style={{ ...styles.finalizarBtn, background: '#F1B100', color: '#000' }} 
+                  onClick={() => {
+                    setModoTeste(true);
                     setMostrarRecaptcha(true);
-                  } else {
-                    finalizarPedidoTeste();
-                  }
-                }}
-                disabled={loadingPagamento}
-              >
-                {!mostrarRecaptcha ? 'Finalizar Pagamento Teste' : 'Confirmar Pedido (Teste)'}
-              </button>
+                    setMostrarFormCartao(false);
+                    setMostrarBotaoPix(true);
+                  }}
+                  disabled={loadingPagamento}
+                >
+                  Finalizar Pagamento Teste
+                </button>
+              ) : (
+                <button 
+                  style={{ ...styles.finalizarBtn, background: '#F1B100', color: '#000' }} 
+                  onClick={finalizarPedidoTeste}
+                  disabled={loadingPagamento}
+                >
+                  Confirmar Pedido (Teste)
+                </button>
+              )}
             </div>
 
             {/* reCAPTCHA v2 - Central para ambas as opcoes */}
