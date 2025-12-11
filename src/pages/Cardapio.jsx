@@ -462,8 +462,9 @@ export default function Cardapio() {
             padding: '40px 30px',
             textAlign: 'center',
             maxWidth: '400px',
-            margin: '0 auto',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            gridColumn: '1 / -1',
+            justifySelf: 'center'
           }}>
             <div style={{
               fontSize: '48px',
@@ -1026,7 +1027,8 @@ const styles = {
     gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", 
     gap: isMobile ? "15px" : "20px",
     maxWidth: "1200px",
-    margin: "0 auto"
+    margin: "0 auto",
+    position: "relative"
   },
   produtosUnico: {
     gridTemplateColumns: "1fr",
