@@ -89,12 +89,13 @@ export default function AdminBebidas() {
     form.ingredientes.forEach((ing) => {
       const ingrediente = ingredientesDisponiveis.find((i) => i.id === ing.ingredienteId);
       if (ingrediente && ing.quantidade) {
-        const custoPorPorcao = (Number(ingrediente.custo || 0) / Number(ingrediente.quantidadePorPacote || 1)) * Number(ing.quantidade);
+        // Calcular custo baseado no precoPorUnidade do ingrediente
+        const custoPorPorcao = Number(ingrediente.precoPorUnidade || 0) * Number(ing.quantidade);
         custoTotal += custoPorPorcao;
       }
     });
 
-    const sugerido = custoTotal * 3.5;
+    const sugerido = custoTotal * 3;
     setPrecoSugerido(sugerido);
   }, [form.ingredientes, ingredientesDisponiveis]);
 
@@ -113,6 +114,9 @@ export default function AdminBebidas() {
       return;
     }
 
+    const ingrediente = ingredientesDisponiveis.find(i => i.id === novoIngrediente.ingredienteId);
+    const custo = ingrediente ? Number(ingrediente.precoPorUnidade || 0) * Number(novoIngrediente.quantidade) : 0;
+
     setForm({
       ...form,
       ingredientes: [
@@ -120,6 +124,7 @@ export default function AdminBebidas() {
         {
           ingredienteId: novoIngrediente.ingredienteId,
           quantidade: Number(novoIngrediente.quantidade),
+          custo: custo,
         },
       ],
     });
@@ -143,6 +148,7 @@ export default function AdminBebidas() {
     const ingredientesFormatados = (bebida.ingredientes || []).map((relacao) => ({
       ingredienteId: relacao.ingrediente.id,
       quantidade: relacao.quantidade,
+      custo: relacao.custo,
     }));
 
     setForm({
@@ -327,7 +333,7 @@ export default function AdminBebidas() {
           onChange={(e) => setForm({ ...form, descricaoEN: e.target.value })}
         />
 
-        <h3 style={{ marginTop: "30px", marginBottom: "10px" }}>Ingredientes</h3>
+        <h3 style={{ marginTop: "30px", marginBottom: "10px" }}>Produtos</h3>
         
         <div style={styles.row}>
           <select
@@ -337,7 +343,7 @@ export default function AdminBebidas() {
               setNovoIngrediente({ ...novoIngrediente, ingredienteId: e.target.value })
             }
           >
-            <option value="">Selecione ingrediente</option>
+            <option value="">Selecione produto</option>
             {ingredientesDisponiveis.map((ing) => (
               <option key={ing.id} value={ing.id}>
                 {ing.nome} ({ing.unidadeMedida})
@@ -362,17 +368,17 @@ export default function AdminBebidas() {
 
         {form.ingredientes.length > 0 && (
           <div style={styles.ingredientesList}>
-            <h4>Ingredientes Adicionados:</h4>
+            <h4>Produtos Adicionados:</h4>
             {form.ingredientes.map((ing) => {
               const ingrediente = ingredientesDisponiveis.find((i) => i.id === ing.ingredienteId);
               if (!ingrediente) return null;
               
-              const custoPorPorcao = (Number(ingrediente.custo || 0) / Number(ingrediente.quantidadePorPacote || 1)) * Number(ing.quantidade);
+              const custoPorPorcao = Number(ingrediente.precoPorUnidade || 0) * Number(ing.quantidade);
               
               return (
                 <div key={ing.ingredienteId} style={styles.ingredienteItem}>
                   <span>
-                    {ingrediente.nome} - {ing.quantidade} {ingrediente.unidadeMedida}
+                    {ingrediente.nome} - {ing.quantidade} {ingrediente.unidade}
                     <small style={{ color: "#666", marginLeft: "10px" }}>
                       (Custo: R$ {custoPorPorcao.toFixed(2)})
                     </small>
@@ -391,10 +397,10 @@ export default function AdminBebidas() {
 
         <div style={styles.precoBox}>
           <div>
-            <strong>💰 Custo Total:</strong> R$ {(precoSugerido / 3.5).toFixed(2)}
+            <strong>💰 Custo Total:</strong> R$ {(precoSugerido / 3).toFixed(2)}
           </div>
           <div>
-            <strong>💡 Preço Sugerido (3.5x):</strong> R$ {precoSugerido.toFixed(2)}
+            <strong>💡 Preço Sugerido (3x):</strong> R$ {precoSugerido.toFixed(2)}
           </div>
         </div>
 
@@ -454,7 +460,7 @@ export default function AdminBebidas() {
             let custoTotal = 0;
             if (b.ingredientes && b.ingredientes.length > 0) {
               b.ingredientes.forEach((relacao) => {
-                const custoPorPorcao = (Number(relacao.ingrediente.custo || 0) / Number(relacao.ingrediente.quantidadePorPacote || 1)) * Number(relacao.quantidade);
+                const custoPorPorcao = Number(relacao.custo || 0);
                 custoTotal += custoPorPorcao;
               });
             }
@@ -476,7 +482,7 @@ export default function AdminBebidas() {
                     <small>{b.descricao}</small>
                     {b.ingredientes && b.ingredientes.length > 0 && (
                       <div style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}>
-                        Ingredientes: {b.ingredientes.map(rel => rel.ingrediente.nome).join(", ")}
+                        Produtos: {b.ingredientes.map(rel => rel.ingrediente.nome).join(", ")}
                       </div>
                     )}
                   </div>
@@ -619,6 +625,7 @@ const styles = {
     display: "flex",
     gap: "12px",
     alignItems: "center",
+    cursor: "grab",
   },
   editBtn: {
     background: "#000",
