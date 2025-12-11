@@ -469,37 +469,35 @@ export default function AdminBebidas() {
 
             return (
               <SortableItem key={b.id} id={b.id}>
-                <div style={styles.itemCard}>
-                  <div style={{ fontSize: "20px", color: "#999", cursor: "grab", marginRight: "10px" }}>
-                    ⋮⋮
+                {({ attributes, listeners }) => (
+                  <div style={styles.itemCard}>
+                    <span style={styles.dragHandle} {...attributes} {...listeners}>⋮⋮</span>
+                    <div style={{ flex: 1 }}>
+                      <strong>{b.nome}</strong> — R${Number(b.preco).toFixed(2)})}
+                      {b.ingredientes && b.ingredientes.length > 0 && (
+                        <span style={styles.custoTag}>
+                          {" • Custo: R$"}{custoTotal.toFixed(2)}
+                          {" • Lucro: R$"}{lucro.toFixed(2)}
+                        </span>
+                      )}
+                      {b.selo && <span style={styles.seloTag}> • {b.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
+                      <br />
+                      <small>{b.descricao}</small>
+                      {b.ingredientes && b.ingredientes.length > 0 && (
+                        <div style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}>
+                          Produtos: {b.ingredientes.map(rel => rel.ingrediente.nome).join(", ")}
+                        </div>
+                      )}
+                    </div>                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                      <button style={styles.editBtn} onClick={() => editarBebida(b)}>
+                        ✏️ Editar
+                      </button>
+                      <button style={styles.deleteBtn} onClick={() => deletarBebida(b.id)}>
+                        🗑️
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <strong>{b.nome}</strong> — R${Number(b.preco).toFixed(2)}
-                    {b.ingredientes && b.ingredientes.length > 0 && (
-                      <span style={styles.custoTag}>
-                        {" • Custo: R$"}{custoTotal.toFixed(2)}
-                        {" • Lucro: R$"}{lucro.toFixed(2)}
-                      </span>
-                    )}
-                    {b.selo && <span style={styles.seloTag}> • {b.selo === 'maisVendido' ? 'Mais Vendido' : 'Especial da Semana'}</span>}
-                    <br />
-                    <small>{b.descricao}</small>
-                    {b.ingredientes && b.ingredientes.length > 0 && (
-                      <div style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}>
-                        Produtos: {b.ingredientes.map(rel => rel.ingrediente.nome).join(", ")}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                    <button style={styles.editBtn} onClick={() => editarBebida(b)}>
-                      ✏️ Editar
-                    </button>
-                    <button style={styles.deleteBtn} onClick={() => deletarBebida(b.id)}>
-                      🗑️
-                    </button>
-                  </div>
-                </div>
+                )}
               </SortableItem>
             );
           })}
@@ -629,7 +627,6 @@ const styles = {
     display: "flex",
     gap: "12px",
     alignItems: "center",
-    cursor: "grab",
   },
   editBtn: {
     background: "#000",
@@ -654,6 +651,13 @@ const styles = {
     color: "#F1B100",
     fontWeight: "bold",
     fontSize: "12px",
+  },
+  dragHandle: {
+    cursor: "grab",
+    marginRight: "10px",
+    color: "#999",
+    fontSize: "18px",
+    userSelect: "none",
   },
   custoTag: {
     color: "#666",
