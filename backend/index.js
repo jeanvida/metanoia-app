@@ -407,9 +407,69 @@ app.patch("/api/pedidos/:id/status", async (req, res) => {
     const upd = await prisma.pedido.update({
       where: { id },
       data: { status },
+      include: {
+        itens: {
+          include: {
+            item: true
+          }
+        }
+      }
     });
+    
+    // TODO: Enviar email/SMS para cliente notificando mudança de status
+    console.log(`📧 Status do pedido ${id} alterado para: ${status}`);
+    
     res.json(upd);
   } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// Criar novo pedido (sem pagamento)
+app.post("/api/pedidos", async (req, res) => {
+  const { clienteNome, clienteEmail, clienteTelefone, clienteCPF, endereco, cep, frete, total, itens, observacao } = req.body;
+  
+  try {
+    console.log("📦 Criando novo pedido:", { clienteNome, total, itensCount: itens.length });
+    
+    const pedido = await prisma.pedido.create({
+      data: {
+        clienteNome,
+        clienteEmail: clienteEmail || null,
+        clienteTelefone,
+        clienteCPF: clienteCPF || null,
+        endereco: endereco || null,
+        cep: cep || null,
+        frete: parseFloat(frete) || 0,
+        total: parseFloat(total),
+        observacao: observacao || null,
+        status: 'SOLICITADO',
+        itens: {
+          create: itens.map(item => ({
+            itemId: item.id,
+            quantidade: item.quantidade,
+            precoUnit: parseFloat(item.preco),
+            observacao: item.observacao || null
+          }))
+        }
+      },
+      include: {
+        itens: {
+          include: {
+            item: true
+          }
+        }
+      }
+    });
+    
+    console.log("✅ Pedido criado com sucesso:", pedido.id);
+    
+    // TODO: Enviar email/SMS para cliente e para o dono
+    console.log(`📧 Enviando notificações para cliente: ${clienteEmail} / ${clienteTelefone}`);
+    
+    res.json(pedido);
+  } catch (e) {
+    console.error("❌ Erro ao criar pedido:", e.message);
     res.status(400).json({ error: e.message });
   }
 });

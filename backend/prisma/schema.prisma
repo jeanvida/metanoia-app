@@ -70,10 +70,16 @@ model ItemIngrediente {
 
 model Pedido {
   id              String       @id @default(uuid())
-  clienteNome     String?
-  clienteTelefone String?
-  status          PedidoStatus @default(PENDENTE)
+  clienteNome     String
+  clienteEmail    String?
+  clienteTelefone String
+  clienteCPF      String?
+  endereco        String?
+  cep             String?
+  frete           Decimal      @default(0) @db.Decimal(10, 2)
+  status          PedidoStatus @default(SOLICITADO)
   total           Decimal      @db.Decimal(10, 2)
+  observacao      String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   itens           PedidoItem[]
@@ -98,9 +104,9 @@ model TransacaoPagamento {
 }
 
 enum PedidoStatus {
-  PENDENTE
-  PREPARANDO
-  PRONTO
-  ENTREGUE
+  SOLICITADO
+  EM_ANDAMENTO
+  SAIU_ENTREGA
+  CONCLUIDO
   CANCELADO
 }
