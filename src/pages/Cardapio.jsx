@@ -56,14 +56,32 @@ export default function Cardapio() {
     Bebidas: [],
   };
   const [produtos, setProdutos] = useState(produtosFixos);
+  const [loadingProdutos, setLoadingProdutos] = useState(true);
 
   // 2. Carregar itens do card pio via API e Ponto 4: Carregar hist rico de transa  es
   useEffect(() => {
     // Fun  o para carregar itens da API
     const carregarItens = async () => {
       try {
-        // Substituir o carregamento do localStorage
-        const response = await fetch(`${API_URL}/api/itens`);
+        // Tentar carregar do cache primeiro
+        const cachedData = localStorage.getItem('cardapio_cache');
+        const cacheTime = localStorage.getItem('cardapio_cache_time');
+        const agora = Date.now();
+        
+        // Se tem cache e tem menos de 5 minutos, usar cache
+        if (cachedData && cacheTime && (agora - parseInt(cacheTime)) < 300000) {
+          const cachedProdutos = JSON.parse(cachedData);
+          setProdutos(cachedProdutos);
+          setLoadingProdutos(false);
+        }
+        
+        // Fazer requisição com timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
+        const response = await fetch(`${API_URL}/api/itens`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) throw new Error('Falha ao buscar itens da API');
         const itens = await response.json();
 
@@ -88,9 +106,15 @@ export default function Cardapio() {
         }, { ...produtosFixos }); // Come a com os fixos para garantir as categorias
 
         setProdutos(itensAgrupados);
+        setLoadingProdutos(false);
+        
+        // Salvar em cache
+        localStorage.setItem('cardapio_cache', JSON.stringify(itensAgrupados));
+        localStorage.setItem('cardapio_cache_time', Date.now().toString());
 
       } catch (error) {
         console.error("Erro ao carregar cardápio da API:", error);
+        setLoadingProdutos(false);
         // Mant m o fallback de localStorage (anteriormente apenas para Hamburgueres), mas agora vazio para seguir a instru  o.
         // O c digo original que carregava do localStorage (para Hamburgueres) foi removido daqui:
         /*
@@ -430,7 +454,14 @@ export default function Cardapio() {
         ...styles.produtos,
         ...(produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 1 ? styles.produtosUnico : {})
       }}>
-        {produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 0 ? (
+        {loadingProdutos ? (
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <p style={{ fontSize: "18px", color: "#666" }}>⏳ Carregando cardápio...</p>
+            <p style={{ fontSize: "14px", color: "#999", marginTop: "10px" }}>
+              Isso pode levar alguns segundos
+            </p>
+          </div>
+        ) : produtos[categoriaAtiva] && produtos[categoriaAtiva].length === 0 ? (
           <p style={{ textAlign: "center" }}>
             Nenhum item nesta categoria ainda.
           </p>
