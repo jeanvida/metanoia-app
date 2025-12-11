@@ -462,12 +462,8 @@ export default function Cardapio() {
             padding: '40px 30px',
             textAlign: 'center',
             maxWidth: '400px',
-            margin: '60px auto',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)'
+            margin: '0 auto',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
           }}>
             <div style={{
               fontSize: '48px',
