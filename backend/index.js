@@ -359,39 +359,6 @@ app.delete("/api/ingredientes/:id", async (req, res) => {
 });
 
 // Rotas de pedidos
-app.post("/api/pedidos", async (req, res) => {
-  const { clienteNome, clienteTelefone, itens } = req.body;
-  try {
-    // 💡 Ajuste: Usa parseFloat no reduce para mitigar problemas de precisão.
-    const total = itens.reduce(
-      (sum, it) => sum + parseFloat(it.precoUnit) * it.quantidade,
-      0
-    );
-
-    const pedido = await prisma.pedido.create({
-      data: {
-        clienteNome,
-        clienteTelefone,
-        status: "PENDENTE",
-        total,
-        itens: {
-          create: itens.map((it) => ({
-            itemId: it.itemId,
-            quantidade: it.quantidade,
-            // 💡 Ajuste: Garante que o precoUnit é um float.
-            precoUnit: parseFloat(it.precoUnit), 
-            observacao: it.observacao ?? null,
-          })),
-        },
-      },
-      include: { itens: { include: { item: true } } },
-    });
-    res.json(pedido);
-  } catch (e) {
-    res.status(400).json({ error: e.message });
-  }
-});
-
 app.get("/api/pedidos", async (req, res) => {
   const pedidos = await prisma.pedido.findMany({
     orderBy: { createdAt: "desc" },
