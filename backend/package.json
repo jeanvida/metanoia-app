@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "build": "prisma generate && prisma db push --skip-generate",
     "postinstall": "prisma generate",
     "migrate:deploy": "prisma migrate deploy"
   },
