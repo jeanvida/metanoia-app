@@ -167,6 +167,17 @@ export default function Cardapio() {
     }
   }, [abaAtiva]);
 
+  // Função segura para resetar reCAPTCHA
+  const resetRecaptchaSafe = () => {
+    try {
+      if (window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
+        window.grecaptcha.reset();
+      }
+    } catch (error) {
+      // Ignorar erro silenciosamente
+    }
+  };
+
   // ===== Carrinho (L gica de localStorage mantida) =====
   const [carrinho, setCarrinho] = useState([]);
 
@@ -327,11 +338,11 @@ export default function Cardapio() {
       await criarPedidoBackend(statusPagBank); 
 
       setStatusPagamento(`Pagamento ${statusPagBank}! Transação ID: ${resultado.transacao.id}`);
-      resetRecaptcha();
+      resetRecaptchaSafe();
     } catch (err) {
       console.error("Erro ao pagar com cartão:", err);
       setStatusPagamento(`Falha: ${err.message}`);
-      resetRecaptcha();
+      resetRecaptchaSafe();
     } finally {
       setLoadingPagamento(false);
     }
@@ -375,13 +386,13 @@ export default function Cardapio() {
 
         setPixData(pixDataFormatado);
         setStatusPagamento("Cobrança PIX gerada com sucesso! Escaneie o QR Code.");
-        resetRecaptcha();
+        resetRecaptchaSafe();
         
         await criarPedidoBackend('PENDENTE');
 
       } else {
         setStatusPagamento("Falha: Resposta de PIX inválida do PagBank.");
-        resetRecaptcha();
+        resetRecaptchaSafe();
       }
     } catch (err) {
       console.error("Erro ao pagar com PIX:", err);
@@ -458,7 +469,7 @@ export default function Cardapio() {
         setStatusPagamento("");
         setMostrarRecaptcha(false);
         setModoTeste(false);
-        resetRecaptcha();
+        resetRecaptchaSafe();
       }, 3000);
       
     } catch (err) {
@@ -466,7 +477,7 @@ export default function Cardapio() {
       setStatusPagamento(`Falha: ${err.message}`);
     } finally {
       setLoadingPagamento(false);
-      resetRecaptcha();
+      resetRecaptchaSafe();
     }
   }
 
@@ -937,7 +948,7 @@ export default function Cardapio() {
                     onClick={() => {
                       setMostrarFormCartao(false);
                       setMostrarRecaptcha(false);
-                      resetRecaptcha();
+                      resetRecaptchaSafe();
                     }}
                   >
                     {t("cancelar")}
@@ -973,7 +984,7 @@ export default function Cardapio() {
                     onClick={() => {
                       setMostrarBotaoPix(true);
                       setMostrarRecaptcha(false);
-                      resetRecaptcha();
+                      resetRecaptchaSafe();
                     }}
                   >
                     {t("cancelar")}
