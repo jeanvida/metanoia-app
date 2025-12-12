@@ -164,9 +164,6 @@ export default function Cardapio() {
       setMostrarFormCartao(false);
       setMostrarBotaoPix(true);
       setStatusPagamento("");
-      if (window.grecaptcha) {
-        resetRecaptcha();
-      }
     }
   }, [abaAtiva]);
 
