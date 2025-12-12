@@ -399,7 +399,7 @@ app.delete("/api/pedidos/:id", async (req, res) => {
   const { id } = req.params;
   try {
     // Deletar itens do pedido primeiro (cascade)
-    await prisma.itemPedido.deleteMany({
+    await prisma.pedidoItem.deleteMany({
       where: { pedidoId: id }
     });
     
