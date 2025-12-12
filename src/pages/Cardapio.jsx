@@ -452,7 +452,7 @@ export default function Cardapio() {
       cep: cliente.cep || null,
       frete: parseFloat(frete.valor) || 0,
       total: parseFloat(total) + parseFloat(frete.valor || 0),
-      observacao: null,
+      observacao: cliente.observacaoPedido || cliente.observacaoPedido || null,
       itens: carrinho.map(item => ({
         itemId: item.id,
         quantidade: parseInt(item.quantidade),
@@ -757,6 +757,29 @@ export default function Cardapio() {
                 <p style={{ fontWeight: "bold", marginTop: "10px" }}>
                   {t("total")}: R$ {total.toFixed(2)}
                 </p>
+                
+                {/* Campo de observações */}
+                <div style={{ marginTop: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                    📝 Observações do pedido:
+                  </label>
+                  <textarea
+                    placeholder="Ex: Tirar cebola, sem gelo, entregar na portaria..."
+                    value={cliente.observacaoPedido || ""}
+                    onChange={(e) => setCliente({ ...cliente, observacaoPedido: e.target.value })}
+                    style={{
+                      ...styles.input,
+                      minHeight: '80px',
+                      resize: 'vertical',
+                      fontFamily: 'inherit'
+                    }}
+                    maxLength="500"
+                  />
+                  <small style={{ color: '#666' }}>
+                    {(cliente.observacaoPedido || "").length}/500 caracteres
+                  </small>
+                </div>
+                
                 <button style={styles.finalizarBtn} onClick={() => setAbaAtiva("checkout")}>
                   {t("irParaCheckout")}
                 </button>

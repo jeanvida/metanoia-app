@@ -281,6 +281,27 @@ export default function AdminPedidos() {
                 {pedidoSelecionado.clienteTelefone || "N/A"}
               </div>
               <div style={styles.detalheItem}>
+                <strong>CPF:</strong>{" "}
+                {pedidoSelecionado.clienteCPF || "N/A"}
+              </div>
+              <div style={styles.detalheItem}>
+                <strong>Endereço:</strong>{" "}
+                {pedidoSelecionado.endereco || "N/A"}
+              </div>
+              <div style={styles.detalheItem}>
+                <strong>CEP:</strong>{" "}
+                {pedidoSelecionado.cep || "N/A"}
+              </div>
+              <div style={styles.detalheItem}>
+                <strong>Frete:</strong> R$ {parseFloat(pedidoSelecionado.frete || 0).toFixed(2)}
+              </div>
+              {pedidoSelecionado.observacao && (
+                <div style={{ ...styles.detalheItem, marginTop: '10px', padding: '10px', backgroundColor: '#fff3cd', borderRadius: '4px' }}>
+                  <strong>📝 Observações do Cliente:</strong><br />
+                  {pedidoSelecionado.observacao}
+                </div>
+              )}
+              <div style={styles.detalheItem}>
                 <strong>Data do Pedido:</strong>{" "}
                 {new Date(pedidoSelecionado.createdAt).toLocaleDateString(
                   "pt-BR",
