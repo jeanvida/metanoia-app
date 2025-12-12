@@ -28,9 +28,10 @@ export default function Cardapio() {
     endereco: "Rua Teste 123",
     bairro: "Centro",
     cidade: "Curitiba",
-    uf: "PR"
+    uf: "PR",
+    cep: "88330768"
   });
-  const [frete, setFrete] = useState({ cep: "80000-000", valor: 5, km: 2 });
+  const [frete, setFrete] = useState({ cep: "88330768", valor: 5, km: 2 });
   const [drawerAberto, setDrawerAberto] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState("carrinho"); // carrinho, checkout, pagamento
 
