@@ -430,7 +430,8 @@ app.post("/api/pedidos", async (req, res) => {
   const { clienteNome, clienteEmail, clienteTelefone, clienteCPF, endereco, cep, frete, total, itens, observacao } = req.body;
   
   try {
-    console.log("📦 Criando novo pedido:", { clienteNome, total, itensCount: itens.length });
+    console.log("📦 Criando novo pedido:", { clienteNome, total, itensCount: itens?.length });
+    console.log("📦 Dados recebidos:", JSON.stringify(req.body, null, 2));
     
     const pedido = await prisma.pedido.create({
       data: {
