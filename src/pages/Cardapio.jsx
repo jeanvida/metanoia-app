@@ -1314,7 +1314,7 @@ const styles = {
       color: "#000"
     }
   },
-  drawer: { position: "fixed", top: 0, right: 0, width: isMobile ? "100%" : "400px", maxWidth: isMobile ? "100%" : "400px", height: "100vh", backgroundColor: "#fff", borderLeft: "2px solid #000", padding: isMobile ? "10px 15px" : "10px 20px", boxShadow: "-4px 0 10px rgba(0,0,0,0.2)", zIndex: 1000, display: "flex", flexDirection: "column", transition: "transform 0.3s ease", overflowY: "auto", overflow: "visible" },
+  drawer: { position: "fixed", top: 0, right: 0, width: isMobile ? "50vw" : "400px", maxWidth: isMobile ? "90vw" : "400px", minWidth: isMobile ? "260px" : "auto", height: "100vh", backgroundColor: "#fff", borderLeft: "2px solid #000", padding: isMobile ? "10px 8px" : "10px 20px", boxShadow: "-4px 0 10px rgba(0,0,0,0.2)", zIndex: 1000, display: "flex", flexDirection: "column", transition: "transform 0.3s ease", overflowY: "auto", overflow: "visible" },
   abaContainer: { display: "flex", gap: "5px", marginBottom: "15px", flexWrap: isMobile ? "wrap" : "nowrap" },
   abaBtn: { flex: 1, padding: isMobile ? "6px 0" : "8px 0", fontWeight: "bold", cursor: "pointer", borderRadius: "6px", border: "1px solid #000", backgroundColor: "#fff", fontSize: isMobile ? "13px" : "14px", minWidth: isMobile ? "30%" : "auto" },
   abaAtiva: { backgroundColor: "#000", color: "#F1B100" },
