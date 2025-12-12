@@ -7,61 +7,15 @@ export default function Admin() {
   const [senha, setSenha] = useState("");
   const [logado, setLogado] = useState(false);
   const [novosPedidos, setNovosPedidos] = useState(0);
-  const [ultimoCheck, setUltimoCheck] = useState(null); // Inicializa como null
-  const [audioContext, setAudioContext] = useState(null);
+  const [ultimoCheck, setUltimoCheck] = useState(null);
   const navigate = useNavigate();
 
-  // Criar contexto de áudio ao fazer login
-  useEffect(() => {
-    if (logado && !audioContext) {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      setAudioContext(ctx);
-    }
-  }, [logado, audioContext]);
-
-  // Função para tocar sino usando Web Audio API
+  // Função para tocar sino
   const tocarSino = () => {
-    if (!audioContext) return;
-
     try {
-      // Garantir que o contexto está rodando
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-
-      // Criar oscilador para simular sino
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // Configurar som de sino (frequências harmônicas)
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.5);
-
-      // Envelope de volume (fade out)
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
-
-      // Tocar
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 2);
-
-      // Segundo sino (harmônico)
-      setTimeout(() => {
-        const osc2 = audioContext.createOscillator();
-        const gain2 = audioContext.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioContext.destination);
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(600, audioContext.currentTime);
-        gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
-        osc2.start(audioContext.currentTime);
-        osc2.stop(audioContext.currentTime + 1.5);
-      }, 200);
+      const audio = new Audio('/bell.mp3');
+      audio.volume = 0.7;
+      audio.play().catch(err => console.error('Erro ao tocar sino:', err));
     } catch (error) {
       console.error('Erro ao tocar sino:', error);
     }
