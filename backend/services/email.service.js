@@ -26,7 +26,7 @@ async function enviarEmailCliente(pedido) {
   const emailData = {
     sender: { 
       name: process.env.RESTAURANT_NAME || 'Metanoia Burger',
-      email: 'noreply@metanoiaburger.com'
+      email: process.env.OWNER_EMAIL || 'metanoiaburger@gmail.com'
     },
     to: [{ email: pedido.clienteEmail }],
     subject: `✅ Pedido #${pedido.id.substring(0, 8)} confirmado!`,
@@ -122,7 +122,7 @@ async function enviarEmailDono(pedido) {
   const emailData = {
     sender: { 
       name: `Sistema ${process.env.RESTAURANT_NAME || 'Metanoia Burger'}`,
-      email: 'noreply@metanoiaburger.com'
+      email: process.env.OWNER_EMAIL || 'metanoiaburger@gmail.com'
     },
     to: [{ email: emailDono }],
     subject: `🔔 NOVO PEDIDO #${pedido.id.substring(0, 8)} - ${pedido.clienteNome}`,
