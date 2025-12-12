@@ -132,6 +132,21 @@ export default function Admin() {
       }
     };
 
+            // Função para liberar o áudio após interação
+            const ativarAudio = () => {
+              if (window.bellAudio) {
+                window.bellAudio.play().then(() => {
+                  // Sucesso, áudio liberado
+                }).catch(() => {
+                  // Pode ignorar erro
+                });
+              } else {
+                const audio = new Audio('/bell.mp3');
+                audio.volume = 0.7;
+                audio.play();
+                window.bellAudio = audio;
+              }
+            };
     verificarNovosPedidos();
     const interval = setInterval(verificarNovosPedidos, 10000); // 10 segundos
     return () => clearInterval(interval);
@@ -344,6 +359,12 @@ const styles = {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "12px",
+                {/* Botão para liberar o áudio do sino */}
+                {logado && (
+                  <button onClick={ativarAudio} style={{position:'fixed',top:10,right:10,zIndex:1000,padding:'6px 16px',background:'#fff',border:'1px solid #ccc',borderRadius:6,cursor:'pointer'}}>
+                    Ativar som do sino 🔔
+                  </button>
+                )}
     border: "2px solid #000",
     textAlign: "center",
   },
