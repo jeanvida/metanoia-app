@@ -365,11 +365,6 @@ const styles = {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "12px",
-                {logado && (
-                  <button onClick={ativarAudio} style={{position:'fixed',top:10,right:10,zIndex:1000,padding:'6px 16px',background:'#fff',border:'1px solid #ccc',borderRadius:6,cursor:'pointer'}}>
-                    Ativar som do sino 🔔
-                  </button>
-                )}
     border: "2px solid #000",
     textAlign: "center",
   },
