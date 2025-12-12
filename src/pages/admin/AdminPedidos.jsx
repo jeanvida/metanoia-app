@@ -110,6 +110,33 @@ export default function AdminPedidos() {
     }
   }
 
+  // Excluir pedido
+  async function excluirPedido(pedidoId) {
+    const confirmacao = window.confirm("⚠️ Tem certeza que deseja excluir esse pedido?\n\nEsta ação não pode ser desfeita!");
+    
+    if (!confirmacao) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Erro ao excluir pedido");
+
+      // Remover da lista
+      setPedidos(pedidos.filter((p) => p.id !== pedidoId));
+      
+      // Fechar modal se estava aberto
+      if (pedidoSelecionado?.id === pedidoId) {
+        setPedidoSelecionado(null);
+      }
+
+      alert("✅ Pedido excluído com sucesso!");
+    } catch (err) {
+      alert(`❌ Erro ao excluir: ${err.message}`);
+    }
+  }
+
   const filtrados = pedidosFiltrados();
 
   return (
@@ -358,6 +385,14 @@ export default function AdminPedidos() {
                 ))}
               </select>
             </div>
+
+            {/* Botão Excluir */}
+            <button
+              style={styles.btnExcluir}
+              onClick={() => excluirPedido(pedidoSelecionado.id)}
+            >
+              🗑️ Excluir Pedido
+            </button>
           </div>
         </div>
       )}
@@ -574,6 +609,18 @@ const styles = {
     border: "2px solid #000",
     fontSize: "14px",
     cursor: "pointer",
+  },
+  btnExcluir: {
+    width: "100%",
+    backgroundColor: "#f44336",
+    color: "#fff",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "16px",
+    marginTop: "10px",
   },
   erro: {
     color: "#f44336",

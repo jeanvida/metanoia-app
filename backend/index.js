@@ -394,6 +394,28 @@ app.patch("/api/pedidos/:id/status", async (req, res) => {
   }
 });
 
+// Deletar pedido
+app.delete("/api/pedidos/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Deletar itens do pedido primeiro (cascade)
+    await prisma.itemPedido.deleteMany({
+      where: { pedidoId: id }
+    });
+    
+    // Deletar o pedido
+    await prisma.pedido.delete({
+      where: { id }
+    });
+    
+    console.log(`🗑️ Pedido ${id} excluído`);
+    res.json({ message: "Pedido excluído com sucesso" });
+  } catch (e) {
+    console.error("❌ Erro ao excluir pedido:", e.message);
+    res.status(400).json({ error: e.message });
+  }
+});
+
 // Criar novo pedido (sem pagamento)
 app.post("/api/pedidos", async (req, res) => {
   const { clienteNome, clienteEmail, clienteTelefone, clienteCPF, endereco, cep, frete, total, itens, observacao } = req.body;
