@@ -7,7 +7,7 @@ export default function Admin() {
   const [senha, setSenha] = useState("");
   const [logado, setLogado] = useState(false);
   const [novosPedidos, setNovosPedidos] = useState(0);
-  const [ultimoCheck, setUltimoCheck] = useState(Date.now());
+  const [ultimoCheck, setUltimoCheck] = useState(null); // Inicializa como null
   const navigate = useNavigate();
 
   const SENHA_CORRETA = "metanoia2025";
@@ -30,18 +30,26 @@ export default function Admin() {
         if (response.ok) {
           const pedidos = await response.json();
           
+          // Na primeira execução, apenas seta o timestamp sem notificar
+          if (ultimoCheck === null) {
+            setUltimoCheck(Date.now());
+            return;
+          }
+          
           // Filtrar pedidos novos desde último check
           const pedidosNovos = pedidos.filter(
             p => new Date(p.createdAt).getTime() > ultimoCheck && p.status === "SOLICITADO"
           );
           
           if (pedidosNovos.length > 0) {
-            // Tocar som
-            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUQ0PVKzn77BdGQg+ltzy0H4qBSd+zPLaizsIGGS57OihURAMT6Xj8bllHgU2jdXzzn0sBSJ1xe/glEcLElev6O6rWBgLQ5zg8bl0IgU1is7y04I1Bhxqvu7mnVQOD1Om5O+zYBoIOJTT8dGAKgUme8rx3I4+CRZhturqpVIRDU6k5PC5aB8FNIzU8898LgUhcsTv5JdKDBJUre3vrlsZCz+Y3PLRgC4FJHnI8d2PRg0TXLXq7qNSDw5Kn+LwvGsdBTiP1PLPfzAFI3PD7+OYTgwSVKzt76xiHAk8mNrxy38qBih+y/HdjUALElyw6u+pVxULQZve8r5wIwU1h9Dy1IM2Bhtn');
+            // Tocar som de sino (arquivo real)
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            audio.volume = 0.5;
             audio.play().catch(() => {});
             
             // Atualizar contador
             setNovosPedidos(prev => prev + pedidosNovos.length);
+            setUltimoCheck(Date.now());
           }
         }
       } catch (error) {
