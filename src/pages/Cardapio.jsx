@@ -275,15 +275,20 @@ export default function Cardapio() {
   async function criarPedidoBackend(statusPagamento) {
     const dadosPedido = {
       clienteNome: cliente.nome,
+      clienteEmail: cliente.email || null,
       clienteTelefone: cliente.telefone,
+      clienteCPF: cliente.cpf || null,
+      endereco: `${cliente.endereco || ''}, ${cliente.bairro || ''}, ${cliente.cidade || ''} - ${cliente.uf || ''}`.trim(),
+      cep: cliente.cep || null,
+      frete: parseFloat(frete.valor) || 0,
+      total: parseFloat(total) + parseFloat(frete.valor || 0),
+      observacao: null,
       itens: carrinho.map(item => ({
-        itemId: item.id,
-        quantidade: item.quantidade,
-        precoUnit: item.preco
-      })),
-      valorTotal: total + frete.valor,
-      tipoPagamento: statusPagamento.includes('PIX') ? 'PIX' : 'CARTAO',
-      status: statusPagamento,
+        id: item.id,
+        quantidade: parseInt(item.quantidade),
+        preco: parseFloat(item.preco),
+        observacao: item.observacao || null
+      }))
     };
 
     try {
@@ -398,7 +403,7 @@ export default function Cardapio() {
         setStatusPagamento("Cobrança PIX gerada com sucesso! Escaneie o QR Code.");
         resetRecaptchaSafe();
         
-        await criarPedidoBackend('PENDENTE');
+        await criarPedidoBackend('SOLICITADO');
 
       } else {
         setStatusPagamento("Falha: Resposta de PIX inválida do PagBank.");
@@ -432,6 +437,10 @@ export default function Cardapio() {
     }
 
     setStatusPagamento("Processando pedido...");
+
+    console.log("🔍 DEBUG - total:", total, "tipo:", typeof total);
+    console.log("🔍 DEBUG - frete.valor:", frete.valor, "tipo:", typeof frete.valor);
+    console.log("🔍 DEBUG - carrinho:", carrinho);
 
     const dadosPedido = {
       clienteNome: cliente.nome,
