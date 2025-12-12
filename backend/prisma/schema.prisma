@@ -16,70 +16,64 @@ model Categoria {
 }
 
 model ItemCardapio {
-  id          String       @id @default(uuid())
-  nome        String
-  descricao   String?
-  descricaoES String?
-  descricaoEN String?
-  preco       Decimal      @db.Decimal(10, 2)
-  categoriaId String
-  ordem       Int          @default(0)
-  createdAt   DateTime     @default(now())
-  img         String?
-  peso        Int?
-  selo        String?
-  itensCombo  Json?        // Array de itens que compõem o combo
-  pedidos     PedidoItem[]
-  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
+  id           String            @id @default(uuid())
+  nome         String
+  descricao    String?
+  preco        Decimal           @db.Decimal(10, 2)
+  categoriaId  String
+  createdAt    DateTime          @default(now())
+  img          String?
+  peso         Int?
+  descricaoEN  String?
+  descricaoES  String?
+  selo         String?
+  ordem        Int               @default(0)
+  itensCombo   Json?
+  pedidos      PedidoItem[]
+  categoria    Categoria         @relation(fields: [categoriaId], references: [id])
   ingredientes ItemIngrediente[]
 
   @@map("itens_cardapio")
 }
 
 model Ingrediente {
-  id                      String   @id @default(uuid())
-  nome                    String
-  unidade                 String   // kg, litro, unidade
-  precoPorUnidade         Decimal  @db.Decimal(10, 4)
-  quantidadePorEmbalagem  Decimal? @db.Decimal(10, 3)
-  precoEmbalagem          Decimal? @db.Decimal(10, 2)
-  pesoMedioPorUnidade     Decimal? @db.Decimal(10, 3) // Para itens como pão (1 un = 80g) quando comprado por unidade
-  pesoPorPorcao           Decimal? @db.Decimal(10, 3) // Para itens comprados em kg/litro mas porcionados (ex: queijo 1 fatia = 15g, carne 1 disco = 70g)
-  tipoPorcao              String?  // "fatia", "unidade", "porção" - como chamar a porção ao adicionar no produto
-  ordem                   Int      @default(0)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-  itens                   ItemIngrediente[]
+  id                     String            @id @default(uuid())
+  nome                   String
+  unidade                String
+  precoPorUnidade        Decimal           @db.Decimal(10, 4)
+  quantidadePorEmbalagem Decimal?          @db.Decimal(10, 3)
+  precoEmbalagem         Decimal?          @db.Decimal(10, 2)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  pesoMedioPorUnidade    Decimal?          @db.Decimal(10, 3)
+  pesoPorPorcao          Decimal?          @db.Decimal(10, 3)
+  tipoPorcao             String?
+  ordem                  Int               @default(0)
+  itens                  ItemIngrediente[]
 
   @@map("ingredientes")
 }
 
 model ItemIngrediente {
-  id             String       @id @default(uuid())
-  itemId         String
-  ingredienteId  String
-  quantidade     Decimal      @db.Decimal(10, 3)
-  custo          Decimal      @db.Decimal(10, 4)
-  ordem          Int          @default(0)
-  createdAt      DateTime     @default(now())
-  item           ItemCardapio @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  ingrediente    Ingrediente  @relation(fields: [ingredienteId], references: [id])
+  id            String       @id @default(uuid())
+  itemId        String
+  ingredienteId String
+  quantidade    Decimal      @db.Decimal(10, 3)
+  custo         Decimal      @db.Decimal(10, 4)
+  createdAt     DateTime     @default(now())
+  ordem         Int          @default(0)
+  ingrediente   Ingrediente  @relation(fields: [ingredienteId], references: [id])
+  item          ItemCardapio @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@map("itens_ingredientes")
 }
 
 model Pedido {
   id              String       @id @default(uuid())
-  clienteNome     String
-  clienteEmail    String?
-  clienteTelefone String
-  clienteCPF      String?
-  endereco        String?
-  cep             String?
-  frete           Decimal      @default(0) @db.Decimal(10, 2)
-  status          PedidoStatus @default(SOLICITADO)
+  clienteNome     String?
+  clienteTelefone String?
+  status          PedidoStatus @default(PENDENTE)
   total           Decimal      @db.Decimal(10, 2)
-  observacao      String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   itens           PedidoItem[]
@@ -104,9 +98,9 @@ model TransacaoPagamento {
 }
 
 enum PedidoStatus {
-  SOLICITADO
-  EM_ANDAMENTO
-  SAIU_ENTREGA
-  CONCLUIDO
+  PENDENTE
+  PREPARANDO
+  PRONTO
+  ENTREGUE
   CANCELADO
 }

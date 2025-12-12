@@ -454,9 +454,9 @@ export default function Cardapio() {
       total: parseFloat(total) + parseFloat(frete.valor || 0),
       observacao: null,
       itens: carrinho.map(item => ({
-        id: item.id,
+        itemId: item.id,
         quantidade: parseInt(item.quantidade),
-        preco: parseFloat(item.preco),
+        precoUnit: parseFloat(item.preco),
         observacao: item.observacao || null
       }))
     };
