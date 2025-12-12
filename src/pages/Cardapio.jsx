@@ -272,6 +272,7 @@ export default function Cardapio() {
   }
 
   // Fun  o Auxiliar para Criar Pedido no Backend (Ponto 3)
+  // VERSAO ATUALIZADA 2024-12-11
   async function criarPedidoBackend(statusPagamento) {
     const dadosPedido = {
       clienteNome: cliente.nome,
