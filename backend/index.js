@@ -506,7 +506,7 @@ app.get("/api/pedidos/recentes", async (req, res) => {
       select: {
         id: true,
         status: true,
-        valorTotal: true,
+        total: true,
         clienteNome: true,
         createdAt: true
       }

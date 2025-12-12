@@ -19,7 +19,7 @@ const pedidoTeste = {
       precoUnit: 5.00
     }
   ],
-  valorTotal: 55.00,
+  total: 55.00,
   frete: 8.00,
   endereco: 'Rua Teste, 123 - Bairro Exemplo',
   cep: '12345-678',
