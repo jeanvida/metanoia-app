@@ -27,6 +27,9 @@ export default function AdminPedidos() {
   const [erro, setErro] = useState("");
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
 
+  // Lista de status disponíveis
+  const statusOptions = ["SOLICITADO", "EM_ANDAMENTO", "SAIU_ENTREGA", "CONCLUIDO", "CANCELADO"];
+
   // Carregar pedidos
   useEffect(() => {
     carregarPedidos();
@@ -344,10 +347,10 @@ export default function AdminPedidos() {
 
 function getStatusColor(status) {
   const colors = {
-    PENDENTE: "#ff9800",
-    PREPARANDO: "#2196f3",
-    PRONTO: "#8bc34a",
-    ENTREGUE: "#4caf50",
+    SOLICITADO: "#ff9800",
+    EM_ANDAMENTO: "#2196f3",
+    SAIU_ENTREGA: "#9c27b0",
+    CONCLUIDO: "#4caf50",
     CANCELADO: "#f44336",
   };
   return colors[status] || "#999";

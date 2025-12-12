@@ -432,6 +432,8 @@ export default function Cardapio() {
       }))
     };
 
+    console.log("📦 Enviando pedido:", dadosPedido);
+
     try {
       const response = await fetch(`${API_URL}/api/pedidos`, {
         method: 'POST',
@@ -440,7 +442,9 @@ export default function Cardapio() {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao criar pedido.');
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ Erro do backend:", errorData);
+        throw new Error(errorData.error || 'Falha ao criar pedido.');
       }
       
       const pedidoCriado = await response.json();

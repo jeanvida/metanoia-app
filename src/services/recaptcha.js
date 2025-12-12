@@ -4,14 +4,14 @@ export const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export function getRecaptchaToken() {
   if (!SITE_KEY) {
-    console.warn('reCAPTCHA Site Key não configurada');
+    console.warn('reCAPTCHA Site Key nï¿½o configurada');
     return null;
   }
 
   try {
     const token = window.grecaptcha.getResponse();
     if (!token) {
-      console.warn('reCAPTCHA não foi completado pelo usuário');
+      console.warn('reCAPTCHA nï¿½o foi completado pelo usuï¿½rio');
       return null;
     }
     return token;
@@ -23,8 +23,10 @@ export function getRecaptchaToken() {
 
 export function resetRecaptcha() {
   try {
-    window.grecaptcha.reset();
+    if (window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
+      window.grecaptcha.reset();
+    }
   } catch (error) {
-    console.error('Erro ao resetar reCAPTCHA:', error);
+    // Ignorar erro silenciosamente - reCAPTCHA pode nÃ£o estar carregado
   }
 }
