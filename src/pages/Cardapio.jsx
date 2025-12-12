@@ -436,7 +436,8 @@ export default function Cardapio() {
       itens: carrinho.map(item => ({
         id: item.id,
         quantidade: item.quantidade,
-        preco: item.preco
+        preco: item.preco,
+        observacao: item.observacao || null
       }))
     };
 

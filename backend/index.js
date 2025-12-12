@@ -443,7 +443,7 @@ app.post("/api/pedidos", async (req, res) => {
         frete: parseFloat(frete) || 0,
         total: parseFloat(total),
         observacao: observacao || null,
-        status: 'PENDENTE', // Temporário até migration rodar
+        status: 'SOLICITADO',
         itens: {
           create: itens.map(item => ({
             itemId: item.id,
