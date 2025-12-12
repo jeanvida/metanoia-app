@@ -24,6 +24,11 @@ export default function Admin() {
   useEffect(() => {
     if (!logado) return;
 
+    // Solicitar permissão para notificações
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     const verificarNovosPedidos = async () => {
       try {
         const response = await fetch(`${API_URL}/api/pedidos`);
@@ -42,10 +47,28 @@ export default function Admin() {
           );
           
           if (pedidosNovos.length > 0) {
-            // Tocar som de sino (arquivo real)
+            // Tocar som de sino
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
             audio.volume = 0.5;
             audio.play().catch(() => {});
+            
+            // Mostrar notificação do sistema
+            if (Notification.permission === 'granted') {
+              const notification = new Notification('🔔 Novo Pedido!', {
+                body: `${pedidosNovos.length} novo(s) pedido(s) recebido(s)`,
+                icon: '/logo.png',
+                badge: '/logo.png',
+                tag: 'novo-pedido',
+                requireInteraction: false,
+                silent: false // Vai tocar o som padrão do sistema também
+              });
+              
+              // Clicar na notificação foca na janela
+              notification.onclick = () => {
+                window.focus();
+                notification.close();
+              };
+            }
             
             // Atualizar contador
             setNovosPedidos(prev => prev + pedidosNovos.length);
