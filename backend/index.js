@@ -415,9 +415,9 @@ app.post("/api/pedidos", async (req, res) => {
         status: 'SOLICITADO',
         itens: {
           create: itens.map(item => ({
-            itemId: item.id,
+            itemId: item.itemId,
             quantidade: item.quantidade,
-            precoUnit: parseFloat(item.preco),
+            precoUnit: parseFloat(item.precoUnit),
             observacao: item.observacao || null
           }))
         }
