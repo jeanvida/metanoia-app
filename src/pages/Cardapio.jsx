@@ -71,25 +71,27 @@ export default function Cardapio() {
 
   // 2. Carregar itens do card pio via API e Ponto 4: Carregar hist rico de transa  es
   useEffect(() => {
-    // Fun  o para carregar itens da API
-    const carregarItens = async () => {
+    // Fun  o para carregar itens da API com retry
+    const carregarItens = async (tentativa = 1) => {
       try {
-        // Tentar carregar do cache primeiro
+        // Tentar carregar do cache primeiro e mostrar
         const cachedData = localStorage.getItem('cardapio_cache');
         const cacheTime = localStorage.getItem('cardapio_cache_time');
         const agora = Date.now();
         
-        // Se tem cache e tem menos de 5 minutos, usar cache
-        if (cachedData && cacheTime && (agora - parseInt(cacheTime)) < 300000) {
+        // Se tem cache, mostrar imediatamente (stale-while-revalidate)
+        if (cachedData) {
           const cachedProdutos = JSON.parse(cachedData);
           setProdutos(cachedProdutos);
           setLoadingProdutos(false);
+          console.log('📦 Cardápio carregado do cache');
         }
         
-        // Fazer requisição com timeout
+        // Fazer requisição com timeout maior (30s para cold start)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
         
+        console.log(`🔄 Tentativa ${tentativa}/3 - Carregando cardápio...`);
         const response = await fetch(`${API_URL}/api/itens`, { signal: controller.signal });
         clearTimeout(timeoutId);
         
@@ -119,21 +121,25 @@ export default function Cardapio() {
         setProdutos(itensAgrupados);
         setLoadingProdutos(false);
         
-        // Salvar em cache
+        // Salvar em cache atualizado
         localStorage.setItem('cardapio_cache', JSON.stringify(itensAgrupados));
         localStorage.setItem('cardapio_cache_time', Date.now().toString());
+        console.log('✅ Cardápio atualizado com sucesso');
 
       } catch (error) {
-        console.error("Erro ao carregar cardápio da API:", error);
-        setLoadingProdutos(false);
-        // Mant m o fallback de localStorage (anteriormente apenas para Hamburgueres), mas agora vazio para seguir a instru  o.
-        // O c digo original que carregava do localStorage (para Hamburgueres) foi removido daqui:
-        /*
-        const hamburgueresLS = localStorage.getItem("hamburgueres");
-        if (hamburgueresLS) { ... }
-        */
-        // Se houver necessidade de manter os produtos fixos em caso de falha da API, descomente a linha abaixo:
-        // setProdutos(produtosFixos); 
+        console.error(`❌ Erro ao carregar cardápio (tentativa ${tentativa}/3):`, error.message);
+        
+        // Se falhou e não tem cache, tentar novamente (até 3 vezes)
+        if (tentativa < 3 && !cachedData) {
+          console.log('🔄 Tentando novamente em 2 segundos...');
+          setTimeout(() => carregarItens(tentativa + 1), 2000);
+          return;
+        }
+        
+        // Se chegou aqui e não tem cache, mostrar vazio
+        if (!cachedData) {
+          setLoadingProdutos(false);
+        }
       }
     };
     
@@ -586,7 +592,7 @@ export default function Cardapio() {
             borderRadius: '15px',
             padding: '40px 30px',
             textAlign: 'center',
-            maxWidth: '400px',
+            maxWidth: '450px',
             boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
             gridColumn: '1 / -1',
             justifySelf: 'center'
@@ -596,7 +602,7 @@ export default function Cardapio() {
               marginBottom: '20px',
               animation: 'spin 2s linear infinite',
               display: 'inline-block'
-            }}>⏰</div>
+            }}>🍔</div>
             <p style={{ 
               fontSize: '20px', 
               color: '#000', 
@@ -608,9 +614,11 @@ export default function Cardapio() {
             <p style={{ 
               fontSize: '14px', 
               color: '#666', 
-              marginTop: '10px'
+              marginTop: '10px',
+              lineHeight: '1.5'
             }}>
-              Isso pode levar alguns segundos
+              Aguarde, estamos acordando o servidor...<br/>
+              <small>(isso pode levar até 30 segundos na primeira vez)</small>
             </p>
             <style>{`
               @keyframes spin {
