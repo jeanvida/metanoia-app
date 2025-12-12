@@ -13,6 +13,7 @@ export default function Home() {
       top: isMobile ? "10px" : "20px", 
       left: isMobile ? "10px" : "20px", 
       display: "flex", 
+      flexDirection: isMobile ? "column" : "row", 
       gap: isMobile ? "6px" : "10px", 
       zIndex: 999 
     },
