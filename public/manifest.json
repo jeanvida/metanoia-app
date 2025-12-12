@@ -1,0 +1,21 @@
+{
+  "name": "Metanoia Burger Cardápio",
+  "short_name": "Metanoia",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F1B100",
+  "theme_color": "#F1B100",
+  "description": "Veja e peça pelo cardápio do Metanoia Burger.",
+  "icons": [
+    {
+      "src": "/logo-192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/logo-512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
