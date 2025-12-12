@@ -20,8 +20,17 @@ export default function Cardapio() {
   const [modalImg, setModalImg] = useState(null);
 
   // ===== Checkout / Carrinho =====
-  const [cliente, setCliente] = useState({});
-  const [frete, setFrete] = useState({ cep: "", valor: 0, km: 0 });
+  const [cliente, setCliente] = useState({
+    nome: "Jean Teste",
+    email: "jean@teste.com",
+    telefone: "41999999999",
+    cpf: "123.456.789-00",
+    endereco: "Rua Teste 123",
+    bairro: "Centro",
+    cidade: "Curitiba",
+    uf: "PR"
+  });
+  const [frete, setFrete] = useState({ cep: "80000-000", valor: 5, km: 2 });
   const [drawerAberto, setDrawerAberto] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState("carrinho"); // carrinho, checkout, pagamento
 
