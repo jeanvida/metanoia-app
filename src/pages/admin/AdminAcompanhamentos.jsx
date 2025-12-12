@@ -145,7 +145,7 @@ export default function AdminAcompanhamentos() {
         const acompCategoria = categorias.find((c) => c.nome === "Acompanhamentos");
         if (acompCategoria) setCategoriaId(acompCategoria.id);
 
-        const response = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos`);
+        const response = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos&includeIngredientes=true&includeIngredientes=true`);
         if (response.ok) {
           const data = await response.json();
           setAcomp(data);
@@ -542,7 +542,7 @@ export default function AdminAcompanhamentos() {
       if (response.ok) {
         alert('Acompanhamento duplicado com sucesso!');
         
-        const recarregar = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos`);
+        const recarregar = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos&includeIngredientes=true`);
         if (recarregar.ok) {
           const data = await recarregar.json();
           setAcomp(data);
@@ -594,7 +594,7 @@ export default function AdminAcompanhamentos() {
           const mensagem = editandoId ? "Acompanhamento atualizado com sucesso!" : "Acompanhamento cadastrado com sucesso!";
           alert(mensagem);
           
-          const recarregar = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos`);
+          const recarregar = await fetch(`${API_URL}/api/itens?categoria=Acompanhamentos&includeIngredientes=true`);
           if (recarregar.ok) {
             const data = await recarregar.json();
             setAcomp(data);

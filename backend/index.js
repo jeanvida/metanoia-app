@@ -257,7 +257,7 @@ app.delete("/api/itens/:id", async (req, res) => {
 });
 
 app.get("/api/itens", async (req, res) => {
-  const { categoria } = req.query;
+  const { categoria, includeIngredientes } = req.query;
   
   try {
     let where = {};
@@ -269,23 +269,26 @@ app.get("/api/itens", async (req, res) => {
       };
     }
     
+    // Só incluir ingredientes se solicitado (admin)
+    const include = includeIngredientes === 'true' ? {
+      categoria: true,
+      ingredientes: {
+        include: {
+          ingrediente: true
+        },
+        orderBy: { ordem: 'asc' }
+      }
+    } : {
+      categoria: true
+    };
+    
     const itens = await prisma.itemCardapio.findMany({
       where,
-      include: { 
-        categoria: true,
-        ingredientes: {
-          include: {
-            ingrediente: true
-          },
-          orderBy: { ordem: 'asc' }
-        }
-      },
+      include,
       orderBy: { ordem: 'asc' }
     });
+    
     console.log("📦 Retornando itens:", itens.length, "itens");
-    if (itens.length > 0) {
-      console.log("📦 Exemplo de item com ingredientes:", JSON.stringify(itens[0], null, 2));
-    }
     res.json(itens);
   } catch (error) {
     res.status(400).json({ error: error.message });

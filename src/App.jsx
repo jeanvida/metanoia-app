@@ -1,19 +1,34 @@
 import { Routes, Route, Link, Outlet } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import Home from "./pages/Home";
 import Cardapio from "./pages/Cardapio";
-import Admin from "./pages/Admin";
 
-import AdminHamburgueres from "./pages/admin/AdminHamburgueres.jsx";
-import AdminCombos from "./pages/admin/AdminCombos.jsx";
-import AdminAcompanhamentos from "./pages/admin/AdminAcompanhamentos.jsx";
-import AdminBebidas from "./pages/admin/AdminBebidas.jsx";
-import AdminPedidos from "./pages/admin/AdminPedidos.jsx";
-import AdminIngredientes from "./pages/admin/AdminIngredientes.jsx";
+// Lazy load admin pages para melhor performance
+const Admin = lazy(() => import("./pages/Admin"));
+const AdminHamburgueres = lazy(() => import("./pages/admin/AdminHamburgueres.jsx"));
+const AdminCombos = lazy(() => import("./pages/admin/AdminCombos.jsx"));
+const AdminAcompanhamentos = lazy(() => import("./pages/admin/AdminAcompanhamentos.jsx"));
+const AdminBebidas = lazy(() => import("./pages/admin/AdminBebidas.jsx"));
+const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos.jsx"));
+const AdminIngredientes = lazy(() => import("./pages/admin/AdminIngredientes.jsx"));
 
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { getTranslation } from "./i18n/translations";
 
 import logo from "/logo.png";
+
+// Loading component
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    minHeight: '100vh', 
+    background: '#F1B100' 
+  }}>
+    <h2>Carregando...</h2>
+  </div>
+);
 
 export default function App() {
   return (
@@ -30,21 +45,21 @@ export default function App() {
         }}
       >
         <Routes>
-          {/* Admin - tela inteira */}
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/hamburgueres" element={<AdminHamburgueres />} />
-        <Route path="/admin/combos" element={<AdminCombos />} />
-        <Route path="/admin/acompanhamentos" element={<AdminAcompanhamentos />} />
-        <Route path="/admin/bebidas" element={<AdminBebidas />} />
-        <Route path="/admin/pedidos" element={<AdminPedidos />} />
-        <Route path="/admin/ingredientes" element={<AdminIngredientes />} />
+          {/* Admin - tela inteira com lazy loading */}
+          <Route path="/admin" element={<Suspense fallback={<LoadingFallback />}><Admin /></Suspense>} />
+          <Route path="/admin/hamburgueres" element={<Suspense fallback={<LoadingFallback />}><AdminHamburgueres /></Suspense>} />
+          <Route path="/admin/combos" element={<Suspense fallback={<LoadingFallback />}><AdminCombos /></Suspense>} />
+          <Route path="/admin/acompanhamentos" element={<Suspense fallback={<LoadingFallback />}><AdminAcompanhamentos /></Suspense>} />
+          <Route path="/admin/bebidas" element={<Suspense fallback={<LoadingFallback />}><AdminBebidas /></Suspense>} />
+          <Route path="/admin/pedidos" element={<Suspense fallback={<LoadingFallback />}><AdminPedidos /></Suspense>} />
+          <Route path="/admin/ingredientes" element={<Suspense fallback={<LoadingFallback />}><AdminIngredientes /></Suspense>} />
 
-        {/* Layout padrão envolvendo Home e Cardápio */}
-        <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/cardapio" element={<Cardapio />} />
-        </Route>
-      </Routes>
+          {/* Layout padrão envolvendo Home e Cardápio */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/cardapio" element={<Cardapio />} />
+          </Route>
+        </Routes>
     </div>
     </LanguageProvider>
   );

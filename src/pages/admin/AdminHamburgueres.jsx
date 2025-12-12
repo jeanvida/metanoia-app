@@ -164,7 +164,7 @@ export default function AdminHamburgueres() {
         }
 
         // Carregar hambúrgueres
-        const response = await fetch(`${API_URL}/api/itens?categoria=Hambúrgueres`);
+        const response = await fetch(`${API_URL}/api/itens?categoria=Hambúrgueres&includeIngredientes=true`);
         if (response.ok) {
           const data = await response.json();
           console.log("📦 Hambúrgueres carregados:", data);
