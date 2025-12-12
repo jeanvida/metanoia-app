@@ -1,15 +1,7 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Configurar transportador de email
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: process.env.EMAIL_PORT || 587,
-  secure: false, // true para 465, false para outras portas
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// Configurar Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Enviar email para o cliente
 async function enviarEmailCliente(pedido) {
@@ -30,8 +22,8 @@ async function enviarEmailCliente(pedido) {
     </tr>
   `}).join('');
 
-  const mailOptions = {
-    from: `"${process.env.RESTAURANT_NAME || 'Metanoia Hamburgueria'}" <${process.env.EMAIL_USER}>`,
+  const emailData = {
+    from: `${process.env.RESTAURANT_NAME || 'Metanoia Burger'} <onboarding@resend.dev>`,
     to: pedido.clienteEmail,
     subject: `✅ Pedido #${pedido.id.substring(0, 8)} confirmado!`,
     html: `
@@ -93,9 +85,13 @@ async function enviarEmailCliente(pedido) {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const { data, error } = await resend.emails.send(emailData);
+    if (error) {
+      console.error('❌ Erro ao enviar email para cliente:', error);
+      throw error;
+    }
     console.log('✅ Email enviado para cliente:', pedido.clienteEmail);
-    return info;
+    return data;
   } catch (error) {
     console.error('❌ Erro ao enviar email para cliente:', error);
     throw error;
@@ -123,8 +119,8 @@ async function enviarEmailDono(pedido) {
     </tr>
   `}).join('');
 
-  const mailOptions = {
-    from: `"Sistema Metanoia" <${process.env.EMAIL_USER}>`,
+  const emailData = {
+    from: `Sistema ${process.env.RESTAURANT_NAME || 'Metanoia Burger'} <onboarding@resend.dev>`,
     to: emailDono,
     subject: `🔔 NOVO PEDIDO #${pedido.id.substring(0, 8)} - ${pedido.clienteNome}`,
     html: `
@@ -191,9 +187,13 @@ async function enviarEmailDono(pedido) {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const { data, error } = await resend.emails.send(emailData);
+    if (error) {
+      console.error('❌ Erro ao enviar email para dono:', error);
+      throw error;
+    }
     console.log('✅ Email enviado para dono:', emailDono);
-    return info;
+    return data;
   } catch (error) {
     console.error('❌ Erro ao enviar email para dono:', error);
     throw error;
