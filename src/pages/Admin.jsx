@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import NotificacoesPedidos from "../components/NotificacoesPedidos";
 
 export default function Admin() {
   const [senha, setSenha] = useState("");
@@ -60,13 +61,20 @@ export default function Admin() {
 
   return (
     <div style={styles.adminContainer}>
-      <h1 style={styles.title}>Admin — Metanoia Burger</h1>
-      <p style={styles.subtitle}>Gerencie seu cardápio</p>
-
-      {/* Botão sair — canto superior direito */}
-      <button style={styles.sairBtn} onClick={sair}>
-        Sair
-      </button>
+      <div style={styles.header}>
+        <div>
+          <h1 style={styles.title}>Admin — Metanoia Burger</h1>
+          <p style={styles.subtitle}>Gerencie seu cardápio</p>
+        </div>
+        
+        <div style={styles.headerActions}>
+          <NotificacoesPedidos />
+          {/* Botão sair */}
+          <button style={styles.sairBtn} onClick={sair}>
+            Sair
+          </button>
+        </div>
+      </div>
 
       <div style={styles.grid}>
         {categorias.map((cat) => {
@@ -123,12 +131,19 @@ const styles = {
     padding: "20px",
     backgroundColor: "#F1B100",
     minHeight: "100vh",
-    position: "relative",
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "20px",
+  },
+  headerActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
   },
   sairBtn: {
-    position: "absolute",
-    right: "20px",
-    top: "20px",
     background: "#000",
     color: "#fff",
     padding: "10px 16px",
@@ -141,12 +156,11 @@ const styles = {
     fontSize: "32px",
     fontWeight: "bold",
     color: "#000",
-    textAlign: "center",
+    margin: 0,
   },
   subtitle: {
-    textAlign: "center",
     fontSize: "18px",
-    marginBottom: "20px",
+    margin: "8px 0 0 0",
   },
   input: {
     padding: "12px",

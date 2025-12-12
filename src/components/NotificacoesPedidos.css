@@ -1,0 +1,178 @@
+.notificacoes-container {
+  position: relative;
+}
+
+.notificacoes-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  font-size: 24px;
+  color: #333;
+  transition: transform 0.2s;
+}
+
+.notificacoes-btn:hover {
+  transform: scale(1.1);
+}
+
+.notificacao-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.notificacoes-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 350px;
+  max-height: 500px;
+  z-index: 1000;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.notificacoes-header {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.notificacoes-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.marcar-lido-btn {
+  background: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.marcar-lido-btn:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.notificacoes-lista {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.sem-notificacoes {
+  padding: 32px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.notificacao-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.notificacao-item:hover {
+  background: #f8f9fa;
+}
+
+.notificacao-item:last-child {
+  border-bottom: none;
+}
+
+.notificacao-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.notificacao-info strong {
+  font-size: 14px;
+  color: #333;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pendente {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-preparando {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.status-pronto {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-entregue {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.status-cancelado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.notificacao-detalhes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.notificacao-detalhes .valor {
+  font-weight: 600;
+  color: #28a745;
+}
+
+.notificacao-detalhes .hora {
+  color: #666;
+}

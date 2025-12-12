@@ -2,6 +2,8 @@ const path = require("path");
 const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
+const { enviarEmailCliente, enviarEmailDono } = require("./services/email.service");
+const { enviarSMSCliente, enviarSMSDono } = require("./services/sms.service");
 
 // Carrega .env local somente em desenvolvimento
 if (process.env.NODE_ENV !== "production") {
@@ -433,8 +435,15 @@ app.post("/api/pedidos", async (req, res) => {
     
     console.log("✅ Pedido criado com sucesso:", pedido.id);
     
-    // TODO: Enviar email/SMS para cliente e para o dono
-    console.log(`📧 Enviando notificações para cliente: ${clienteEmail} / ${clienteTelefone}`);
+    // Enviar notificações (não bloquear a resposta)
+    Promise.all([
+      enviarEmailCliente(pedido).catch(err => console.error("Erro email cliente:", err)),
+      enviarEmailDono(pedido).catch(err => console.error("Erro email dono:", err)),
+      enviarSMSCliente(pedido).catch(err => console.error("Erro SMS cliente:", err)),
+      enviarSMSDono(pedido).catch(err => console.error("Erro SMS dono:", err)),
+    ]).then(() => {
+      console.log("📧 Notificações processadas");
+    });
     
     res.json(pedido);
   } catch (e) {
@@ -478,6 +487,35 @@ app.get("/api/transacoes", async (req, res) => {
   } catch (e) {
     console.error("Erro ao listar transações:", e.message);
     res.status(500).json({ error: "Falha ao buscar transações." });
+  }
+});
+
+// Rota para buscar pedidos recentes (para notificações no admin)
+app.get("/api/pedidos/recentes", async (req, res) => {
+  try {
+    const { minutos = 60 } = req.query;
+    const dataLimite = new Date(Date.now() - minutos * 60 * 1000);
+    
+    const pedidos = await prisma.pedido.findMany({
+      where: {
+        createdAt: {
+          gte: dataLimite
+        }
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        status: true,
+        valorTotal: true,
+        clienteNome: true,
+        createdAt: true
+      }
+    });
+    
+    res.json(pedidos);
+  } catch (e) {
+    console.error("Erro ao buscar pedidos recentes:", e.message);
+    res.status(500).json({ error: "Falha ao buscar pedidos recentes." });
   }
 });
 
