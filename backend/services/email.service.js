@@ -1,7 +1,8 @@
-const { Resend } = require('resend');
+const SibApiV3Sdk = require('@getbrevo/brevo');
 
-// Configurar Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Configurar Brevo (Sendinblue)
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 // Enviar email para o cliente
 async function enviarEmailCliente(pedido) {
@@ -23,10 +24,13 @@ async function enviarEmailCliente(pedido) {
   `}).join('');
 
   const emailData = {
-    from: `${process.env.RESTAURANT_NAME || 'Metanoia Burger'} <onboarding@resend.dev>`,
-    to: pedido.clienteEmail,
+    sender: { 
+      name: process.env.RESTAURANT_NAME || 'Metanoia Burger',
+      email: 'noreply@metanoiaburger.com'
+    },
+    to: [{ email: pedido.clienteEmail }],
     subject: `✅ Pedido #${pedido.id.substring(0, 8)} confirmado!`,
-    html: `
+    htmlContent: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #ff6b35;">🍔 Pedido Confirmado!</h1>
         
@@ -85,13 +89,9 @@ async function enviarEmailCliente(pedido) {
   };
 
   try {
-    const { data, error } = await resend.emails.send(emailData);
-    if (error) {
-      console.error('❌ Erro ao enviar email para cliente:', error);
-      throw error;
-    }
+    const result = await apiInstance.sendTransacEmail(emailData);
     console.log('✅ Email enviado para cliente:', pedido.clienteEmail);
-    return data;
+    return result;
   } catch (error) {
     console.error('❌ Erro ao enviar email para cliente:', error);
     throw error;
@@ -120,10 +120,13 @@ async function enviarEmailDono(pedido) {
   `}).join('');
 
   const emailData = {
-    from: `Sistema ${process.env.RESTAURANT_NAME || 'Metanoia Burger'} <onboarding@resend.dev>`,
-    to: emailDono,
+    sender: { 
+      name: `Sistema ${process.env.RESTAURANT_NAME || 'Metanoia Burger'}`,
+      email: 'noreply@metanoiaburger.com'
+    },
+    to: [{ email: emailDono }],
     subject: `🔔 NOVO PEDIDO #${pedido.id.substring(0, 8)} - ${pedido.clienteNome}`,
-    html: `
+    htmlContent: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #ff6b35;">🔔 Novo Pedido Recebido!</h1>
         
@@ -187,13 +190,9 @@ async function enviarEmailDono(pedido) {
   };
 
   try {
-    const { data, error } = await resend.emails.send(emailData);
-    if (error) {
-      console.error('❌ Erro ao enviar email para dono:', error);
-      throw error;
-    }
+    const result = await apiInstance.sendTransacEmail(emailData);
     console.log('✅ Email enviado para dono:', emailDono);
-    return data;
+    return result;
   } catch (error) {
     console.error('❌ Erro ao enviar email para dono:', error);
     throw error;

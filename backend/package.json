@@ -9,6 +9,7 @@
     "migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
     "@prisma/client": "^6.19.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
