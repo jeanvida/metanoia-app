@@ -435,17 +435,20 @@ app.post("/api/pedidos", async (req, res) => {
     
     console.log("✅ Pedido criado com sucesso:", pedido.id);
     
-    // Enviar notificações (não bloquear a resposta)
-    Promise.all([
-      enviarEmailCliente(pedido).catch(err => console.error("Erro email cliente:", err)),
-      enviarEmailDono(pedido).catch(err => console.error("Erro email dono:", err)),
-      enviarSMSCliente(pedido).catch(err => console.error("Erro SMS cliente:", err)),
-      enviarSMSDono(pedido).catch(err => console.error("Erro SMS dono:", err)),
-    ]).then(() => {
-      console.log("📧 Notificações processadas");
-    });
-    
+    // Responder imediatamente
     res.json(pedido);
+    
+    // Enviar notificações em background (não bloquear a resposta)
+    setImmediate(() => {
+      Promise.all([
+        enviarEmailCliente(pedido).catch(err => console.error("❌ Erro email cliente:", err)),
+        enviarEmailDono(pedido).catch(err => console.error("❌ Erro email dono:", err)),
+        enviarSMSCliente(pedido).catch(err => console.error("❌ Erro SMS cliente:", err)),
+        enviarSMSDono(pedido).catch(err => console.error("❌ Erro SMS dono:", err)),
+      ]).then(() => {
+        console.log("✅ Notificações enviadas");
+      });
+    });
   } catch (e) {
     console.error("❌ Erro ao criar pedido:", e.message);
     res.status(400).json({ error: e.message });
