@@ -132,21 +132,21 @@ export default function Admin() {
       }
     };
 
-            // Função para liberar o áudio após interação
-            const ativarAudio = () => {
-              if (window.bellAudio) {
-                window.bellAudio.play().then(() => {
-                  // Sucesso, áudio liberado
-                }).catch(() => {
-                  // Pode ignorar erro
-                });
-              } else {
-                const audio = new Audio('/bell.mp3');
-                audio.volume = 0.7;
-                audio.play();
-                window.bellAudio = audio;
-              }
-            };
+  // Função para liberar o áudio após interação
+  const ativarAudio = () => {
+    if (window.bellAudio) {
+      window.bellAudio.play().then(() => {
+        // Sucesso, áudio liberado
+      }).catch(() => {
+        // Pode ignorar erro
+      });
+    } else {
+      const audio = new Audio('/bell.mp3');
+      audio.volume = 0.7;
+      audio.play();
+      window.bellAudio = audio;
+    }
+  };
     verificarNovosPedidos();
     const interval = setInterval(verificarNovosPedidos, 10000); // 10 segundos
     return () => clearInterval(interval);
