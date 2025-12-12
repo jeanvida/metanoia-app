@@ -219,7 +219,7 @@ export default function Cardapio() {
   }
 
   const total = carrinho.reduce(
-    (acc, item) => acc + item.preco * item.quantidade,
+    (acc, item) => acc + parseFloat(item.preco || 0) * item.quantidade,
     0
   );
 
@@ -430,13 +430,13 @@ export default function Cardapio() {
       clienteCPF: cliente.cpf || null,
       endereco: `${cliente.endereco || ''}, ${cliente.bairro || ''}, ${cliente.cidade || ''} - ${cliente.uf || ''}`.trim(),
       cep: cliente.cep || null,
-      frete: frete.valor,
-      total: total + frete.valor,
+      frete: parseFloat(frete.valor) || 0,
+      total: parseFloat(total) + parseFloat(frete.valor || 0),
       observacao: null,
       itens: carrinho.map(item => ({
         id: item.id,
-        quantidade: item.quantidade,
-        preco: item.preco,
+        quantidade: parseInt(item.quantidade),
+        preco: parseFloat(item.preco),
         observacao: item.observacao || null
       }))
     };
