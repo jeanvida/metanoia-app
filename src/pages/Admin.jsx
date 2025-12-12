@@ -36,9 +36,14 @@ export default function Admin() {
 
   // Verifica se já está logado
   useEffect(() => {
-    const isLogged = localStorage.getItem("adminLogado");
-    if (isLogged === "true") {
-      setLogado(true);
+    try {
+      const isLogged = window.localStorage ? localStorage.getItem("adminLogado") : null;
+      if (isLogged === "true") {
+        setLogado(true);
+      }
+    } catch (e) {
+      // Safari privado pode bloquear localStorage
+      setLogado(false);
     }
   }, []);
 
@@ -47,7 +52,7 @@ export default function Admin() {
     if (!logado) return;
 
     // Solicitar permissão para notificações
-    if (Notification.permission === 'default') {
+    if (window.Notification && Notification.permission === 'default') {
       Notification.requestPermission();
     }
 
@@ -56,40 +61,31 @@ export default function Admin() {
         const response = await fetch(`${API_URL}/api/pedidos`);
         if (response.ok) {
           const pedidos = await response.json();
-          
           // Na primeira execução, apenas seta o timestamp sem notificar
           if (ultimoCheck === null) {
             setUltimoCheck(Date.now());
             return;
           }
-          
           // Filtrar pedidos novos desde último check
           const pedidosNovos = pedidos.filter(
             p => new Date(p.createdAt).getTime() > ultimoCheck && p.status === "SOLICITADO"
           );
-          
           if (pedidosNovos.length > 0) {
-
-            
             // Mostrar notificação do sistema
-            if (Notification.permission === 'granted') {
+            if (window.Notification && Notification.permission === 'granted') {
               const notification = new Notification('🔔 Novo Pedido!', {
                 body: `${pedidosNovos.length} novo(s) pedido(s) recebido(s)`,
                 icon: '/logo.png',
                 badge: '/logo.png',
                 tag: 'novo-pedido',
                 requireInteraction: false,
-                silent: false // Vai tocar o som padrão do sistema também
+                silent: false
               });
-              
-              // Clicar na notificação foca na janela
               notification.onclick = () => {
                 window.focus();
                 notification.close();
               };
             }
-            
-            // Atualizar contador
             setNovosPedidos(prev => prev + pedidosNovos.length);
             setUltimoCheck(Date.now());
           }
@@ -98,10 +94,8 @@ export default function Admin() {
         console.error('Erro ao verificar pedidos:', error);
       }
     };
-
-
     verificarNovosPedidos();
-    const interval = setInterval(verificarNovosPedidos, 10000); // 10 segundos
+    const interval = setInterval(verificarNovosPedidos, 10000);
     return () => clearInterval(interval);
   }, [logado, ultimoCheck]);
 
@@ -119,7 +113,7 @@ export default function Admin() {
   function sair() {
     localStorage.removeItem("adminLogado");
     setLogado(false);
-    navigate("/login");
+    navigate("/admin");
   }
 
   // Se NÃO estiver logado → mostra tela de login
@@ -302,6 +296,32 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "20px",
+  },
+  '@media (max-width: 600px)': {
+    grid: {
+      gridTemplateColumns: '1fr',
+      gap: '12px',
+    },
+    adminContainer: {
+      padding: '8px',
+    },
+    card: {
+      padding: '10px',
+    },
+    title: {
+      fontSize: '22px',
+    },
+    cardTitle: {
+      fontSize: '16px',
+    },
+    button: {
+      fontSize: '14px',
+      padding: '8px 12px',
+    },
+    input: {
+      width: '90vw',
+      fontSize: '14px',
+    },
   },
   sectionTitle: {
     marginTop: "40px",
