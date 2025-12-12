@@ -242,18 +242,18 @@ export default function Admin() {
               )}
             </h3>
 
-            <Link 
-              to={`/admin/${item}`} 
+            <button
               style={styles.manageBtn}
               onClick={() => {
                 if (item === "pedidos") {
                   setNovosPedidos(0);
                   setUltimoCheck(Date.now());
                 }
+                navigate(`/admin/${item}`);
               }}
             >
               {item === "pedidos" ? "Visualizar" : "Gerenciar"}
-            </Link>
+            </button>
           </div>
         ))}
       </div>
