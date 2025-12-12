@@ -111,7 +111,6 @@ export default function AdminPedidos() {
   }
 
   const filtrados = pedidosFiltrados();
-  const statusOptions = ["PENDENTE", "PREPARANDO", "PRONTO", "ENTREGUE", "CANCELADO"];
 
   return (
     <div style={{ ...styles.container, position: "relative" }}>
