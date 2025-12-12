@@ -195,11 +195,6 @@ export default function Admin() {
             </button>
           )}
           
-          {/* Botão testar som */}
-          <button style={styles.testSoundBtn} onClick={tocarSino}>
-            🔔 Testar Som
-          </button>
-          
           {/* Botão sair */}
           <button style={styles.sairBtn} onClick={sair}>
             Sair
@@ -295,15 +290,6 @@ const styles = {
     border: "none",
     fontWeight: "bold",
     animation: "pulse 2s infinite",
-  },
-  testSoundBtn: {
-    background: "#2196f3",
-    color: "#fff",
-    padding: "10px 16px",
-    borderRadius: "10px",
-    cursor: "pointer",
-    border: "none",
-    fontWeight: "bold",
   },
   sairBtn: {
     background: "#000",
