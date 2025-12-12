@@ -283,11 +283,11 @@ export default function Cardapio() {
       cep: cliente.cep || null,
       frete: parseFloat(frete.valor) || 0,
       total: parseFloat(total) + parseFloat(frete.valor || 0),
-      observacao: null,
+      observacao: cliente.observacaoPedido || null,
       itens: carrinho.map(item => ({
-        id: item.id,
+        itemId: item.id,
         quantidade: parseInt(item.quantidade),
-        preco: parseFloat(item.preco),
+        precoUnit: parseFloat(item.preco),
         observacao: item.observacao || null
       }))
     };
@@ -452,7 +452,7 @@ export default function Cardapio() {
       cep: cliente.cep || null,
       frete: parseFloat(frete.valor) || 0,
       total: parseFloat(total) + parseFloat(frete.valor || 0),
-      observacao: cliente.observacaoPedido || cliente.observacaoPedido || null,
+      observacao: cliente.observacaoPedido || null,
       itens: carrinho.map(item => ({
         itemId: item.id,
         quantidade: parseInt(item.quantidade),
