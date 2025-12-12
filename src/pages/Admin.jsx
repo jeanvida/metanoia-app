@@ -8,14 +8,38 @@ export default function Admin() {
   const [logado, setLogado] = useState(false);
   const [novosPedidos, setNovosPedidos] = useState(0);
   const [ultimoCheck, setUltimoCheck] = useState(null);
+  const [audioReady, setAudioReady] = useState(false);
   const navigate = useNavigate();
+
+  // Pré-carregar áudio ao fazer login
+  useEffect(() => {
+    if (logado && !audioReady) {
+      // Criar e carregar o áudio
+      const audio = new Audio('/bell.mp3');
+      audio.volume = 0.7;
+      audio.load();
+      window.bellAudio = audio; // Guardar globalmente
+      setAudioReady(true);
+    }
+  }, [logado, audioReady]);
 
   // Função para tocar sino
   const tocarSino = () => {
     try {
-      const audio = new Audio('/bell.mp3');
-      audio.volume = 0.7;
-      audio.play().catch(err => console.error('Erro ao tocar sino:', err));
+      if (window.bellAudio) {
+        window.bellAudio.currentTime = 0; // Reiniciar do início
+        window.bellAudio.play().catch(err => {
+          console.error('Erro ao tocar sino:', err);
+          // Fallback: tentar criar novo áudio
+          const audio = new Audio('/bell.mp3');
+          audio.volume = 0.7;
+          audio.play();
+        });
+      } else {
+        const audio = new Audio('/bell.mp3');
+        audio.volume = 0.7;
+        audio.play();
+      }
     } catch (error) {
       console.error('Erro ao tocar sino:', error);
     }
