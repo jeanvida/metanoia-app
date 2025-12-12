@@ -8,7 +8,7 @@ export default function Admin() {
   const [logado, setLogado] = useState(false);
   const [novosPedidos, setNovosPedidos] = useState(0);
   const [ultimoCheck, setUltimoCheck] = useState(null);
-  const [audioReady, setAudioReady] = useState(false);
+  // Removido: const [audioReady, setAudioReady] = useState(false);
   const [notificacaoPermitida, setNotificacaoPermitida] = useState(false);
   const navigate = useNavigate();
 
@@ -30,39 +30,7 @@ export default function Admin() {
     }
   };
 
-  // Pré-carregar áudio ao fazer login
-  useEffect(() => {
-    if (logado && !audioReady) {
-      // Criar e carregar o áudio
-      const audio = new Audio('/bell.mp3');
-      audio.volume = 0.7;
-      audio.load();
-      window.bellAudio = audio; // Guardar globalmente
-      setAudioReady(true);
-    }
-  }, [logado, audioReady]);
 
-  // Função para tocar sino
-  const tocarSino = () => {
-    try {
-      if (window.bellAudio) {
-        window.bellAudio.currentTime = 0; // Reiniciar do início
-        window.bellAudio.play().catch(err => {
-          console.error('Erro ao tocar sino:', err);
-          // Fallback: tentar criar novo áudio
-          const audio = new Audio('/bell.mp3');
-          audio.volume = 0.7;
-          audio.play();
-        });
-      } else {
-        const audio = new Audio('/bell.mp3');
-        audio.volume = 0.7;
-        audio.play();
-      }
-    } catch (error) {
-      console.error('Erro ao tocar sino:', error);
-    }
-  };
 
   const SENHA_CORRETA = "metanoia2025";
 
@@ -101,8 +69,7 @@ export default function Admin() {
           );
           
           if (pedidosNovos.length > 0) {
-            // Tocar sino
-            tocarSino();
+
             
             // Mostrar notificação do sistema
             if (Notification.permission === 'granted') {
@@ -132,21 +99,7 @@ export default function Admin() {
       }
     };
 
-  // Função para liberar o áudio após interação
-  const ativarAudio = () => {
-    if (window.bellAudio) {
-      window.bellAudio.play().then(() => {
-        // Sucesso, áudio liberado
-      }).catch(() => {
-        // Pode ignorar erro
-      });
-    } else {
-      const audio = new Audio('/bell.mp3');
-      audio.volume = 0.7;
-      audio.play();
-      window.bellAudio = audio;
-    }
-  };
+
     verificarNovosPedidos();
     const interval = setInterval(verificarNovosPedidos, 10000); // 10 segundos
     return () => clearInterval(interval);
@@ -267,12 +220,7 @@ export default function Admin() {
           </div>
         ))}
       </div>
-      {/* Botão para liberar o áudio do sino */}
-      {logado && (
-        <button onClick={ativarAudio} style={{position:'fixed',top:10,right:10,zIndex:1000,padding:'6px 16px',background:'#fff',border:'1px solid #ccc',borderRadius:6,cursor:'pointer'}}>
-          Ativar som do sino 🔔
-        </button>
-      )}
+
     </div>
   );
 }
