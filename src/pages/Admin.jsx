@@ -9,7 +9,26 @@ export default function Admin() {
   const [novosPedidos, setNovosPedidos] = useState(0);
   const [ultimoCheck, setUltimoCheck] = useState(null);
   const [audioReady, setAudioReady] = useState(false);
+  const [notificacaoPermitida, setNotificacaoPermitida] = useState(false);
   const navigate = useNavigate();
+
+  // Verificar status de notificação
+  useEffect(() => {
+    if (logado) {
+      setNotificacaoPermitida(Notification.permission === 'granted');
+    }
+  }, [logado]);
+
+  // Função para solicitar permissão
+  const solicitarPermissao = async () => {
+    const permission = await Notification.requestPermission();
+    setNotificacaoPermitida(permission === 'granted');
+    if (permission === 'granted') {
+      alert('✅ Notificações ativadas! Você será notificado de novos pedidos.');
+    } else {
+      alert('❌ Notificações bloqueadas. Ative manualmente nas configurações do navegador.');
+    }
+  };
 
   // Pré-carregar áudio ao fazer login
   useEffect(() => {
@@ -169,6 +188,13 @@ export default function Admin() {
         </div>
         
         <div style={styles.headerActions}>
+          {/* Botão ativar notificações */}
+          {!notificacaoPermitida && (
+            <button style={styles.notifBtn} onClick={solicitarPermissao}>
+              🔔 Ativar Notificações
+            </button>
+          )}
+          
           {/* Botão testar som */}
           <button style={styles.testSoundBtn} onClick={tocarSino}>
             🔔 Testar Som
@@ -259,6 +285,16 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "16px",
+  },
+  notifBtn: {
+    background: "#ff9800",
+    color: "#fff",
+    padding: "10px 16px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    border: "none",
+    fontWeight: "bold",
+    animation: "pulse 2s infinite",
   },
   testSoundBtn: {
     background: "#2196f3",
