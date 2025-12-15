@@ -110,7 +110,7 @@ export default function Admin() {
       }
     };
     verificarNovosPedidos();
-    const interval = setInterval(verificarNovosPedidos, 10000);
+    const interval = setInterval(verificarNovosPedidos, 60000);
     return () => clearInterval(interval);
   }, [logado, ultimoCheck]);
 

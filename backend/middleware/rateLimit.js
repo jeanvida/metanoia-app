@@ -1,10 +1,10 @@
 // backend/middleware/rateLimit.js
 const rateLimit = require('express-rate-limit');
 
-// Limite padrão: 20 requisições por 10 minutos por IP
+// Limite padrão: 60 requisições por 10 minutos por IP
 const defaultLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutos
-  max: 20,
+  max: 60,
   message: { error: 'Muitas requisições, tente novamente em alguns minutos.' },
   standardHeaders: true,
   legacyHeaders: false,
