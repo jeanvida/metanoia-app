@@ -48,8 +48,11 @@ const prisma = new PrismaClient({
   datasourceUrl: process.env.DATABASE_URL,
 });
 
+
 // Inicialização do Express
 const app = express();
+// Confia no proxy para pegar IP real (Render, Vercel, etc)
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3001;
 
 // CORS
