@@ -34,16 +34,31 @@ export default function Admin() {
 
   const SENHA_CORRETA = "metanoia2025";
 
-  // Verifica se já está logado
+
+  // Verifica se já está logado (localStorage, sessionStorage, fallback)
   useEffect(() => {
+    let logged = false;
     try {
-      const isLogged = window.localStorage ? localStorage.getItem("adminLogado") : null;
-      if (isLogged === "true") {
-        setLogado(true);
+      if (window.localStorage) {
+        logged = localStorage.getItem("adminLogado") === "true";
       }
     } catch (e) {
-      // Safari privado pode bloquear localStorage
-      setLogado(false);
+      // localStorage bloqueado
+    }
+    if (!logged) {
+      try {
+        if (window.sessionStorage) {
+          logged = sessionStorage.getItem("adminLogado") === "true";
+        }
+      } catch (e) {
+        // sessionStorage bloqueado
+      }
+    }
+    setLogado(logged);
+    if (!logged) {
+      setTimeout(() => {
+        alert("Seu navegador está bloqueando o login do admin. Tente sair do modo privado ou use outro navegador.");
+      }, 300);
     }
   }, []);
 
@@ -100,18 +115,36 @@ export default function Admin() {
   }, [logado, ultimoCheck]);
 
   // Login
+
   function handleLogin() {
     if (senha === SENHA_CORRETA) {
-      localStorage.setItem("adminLogado", "true");
+      let ok = false;
+      try {
+        localStorage.setItem("adminLogado", "true");
+        ok = true;
+      } catch (e) {}
+      if (!ok) {
+        try {
+          sessionStorage.setItem("adminLogado", "true");
+          ok = true;
+        } catch (e) {}
+      }
       setLogado(true);
+      if (!ok) {
+        setTimeout(() => {
+          alert("Seu navegador está bloqueando o login do admin. Tente sair do modo privado ou use outro navegador.");
+        }, 300);
+      }
     } else {
       alert("Senha incorreta!");
     }
   }
 
   // Botão sair (AGORA FUNCIONA)
+
   function sair() {
-    localStorage.removeItem("adminLogado");
+    try { localStorage.removeItem("adminLogado"); } catch (e) {}
+    try { sessionStorage.removeItem("adminLogado"); } catch (e) {}
     setLogado(false);
     navigate("/admin");
   }
