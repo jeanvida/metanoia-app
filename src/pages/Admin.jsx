@@ -36,6 +36,9 @@ export default function Admin() {
 
 
   // Verifica se já está logado (localStorage, sessionStorage, fallback)
+
+  // Fallback: login em memória se storage falhar
+  const [memLogado, setMemLogado] = useState(false);
   useEffect(() => {
     let logged = false;
     let storageErro = false;
@@ -55,14 +58,18 @@ export default function Admin() {
         storageErro = true;
       }
     }
+    if (!logged && storageErro && memLogado) {
+      logged = true;
+    }
     setLogado(logged);
-    // Só alerta se realmente não conseguir acessar NENHUM storage
-    if (!logged && storageErro) {
+    // Só alerta se realmente não conseguir acessar NENHUM storage e não estiver logado em memória
+    if (!logged && storageErro && !memLogado) {
       setTimeout(() => {
         alert("Seu navegador está bloqueando o login do admin. Tente sair do modo privado ou use outro navegador.");
       }, 300);
     }
-  }, []);
+    // eslint-disable-next-line
+  }, [memLogado]);
 
   // Verificar novos pedidos a cada 10 segundos
   useEffect(() => {
@@ -119,6 +126,7 @@ export default function Admin() {
   // Login
 
 
+
   function handleLogin() {
     if (senha === SENHA_CORRETA) {
       let ok = false;
@@ -137,6 +145,9 @@ export default function Admin() {
           storageErro = true;
         }
       }
+      if (!ok && storageErro) {
+        setMemLogado(true); // Fallback: login só em memória
+      }
       setLogado(true);
       if (!ok && storageErro) {
         setTimeout(() => {
@@ -150,9 +161,11 @@ export default function Admin() {
 
   // Botão sair (AGORA FUNCIONA)
 
+
   function sair() {
     try { localStorage.removeItem("adminLogado"); } catch (e) {}
     try { sessionStorage.removeItem("adminLogado"); } catch (e) {}
+    setMemLogado(false);
     setLogado(false);
     navigate("/admin");
   }
