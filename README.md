@@ -1,3 +1,27 @@
+## Variáveis de Ambiente (Backend)
+
+Crie um arquivo `backend/.env` com as seguintes variáveis:
+
+### Obrigatórias
+
+- `PORT` — Porta do servidor backend (ex: 3001)
+- `DATABASE_URL` — URL de conexão do banco Supabase/Postgres
+- `PAGBANK_TOKEN` — Token da API PagBank
+- `PAGBANK_API_URL` — URL da API PagBank
+- `PRISMA_CLIENT_ENGINE_TYPE` — Tipo de engine do Prisma (ex: binary)
+- `RECAPTCHA_SECRET_KEY` — Chave secreta do Google reCAPTCHA
+- `BREVO_API_KEY` — Chave da API Brevo (Sendinblue)
+- `RESTAURANT_NAME` — Nome do restaurante (para emails)
+- `OWNER_EMAIL` — Email do dono (para notificações)
+- `ADMIN_TOKEN` — Token de autenticação para rotas admin
+
+### Opcionais (para notificações por SMS)
+- `TWILIO_ACCOUNT_SID` — SID da conta Twilio
+- `TWILIO_AUTH_TOKEN` — Token da conta Twilio
+- `TWILIO_PHONE_NUMBER` — Número Twilio
+- `OWNER_PHONE` — Telefone do dono
+
+**Importante:** Nunca compartilhe seu .env publicamente. Sempre configure essas variáveis no painel do Render (backend) e Vercel (frontend) em produção.
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

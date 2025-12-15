@@ -8,12 +8,12 @@ const client = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
 // Enviar SMS para o cliente
 async function enviarSMSCliente(pedido) {
   if (!client) {
-    console.log('⚠️  Twilio não configurado (TWILIO_ACCOUNT_SID ou TWILIO_AUTH_TOKEN ausentes)');
+    if (process.env.NODE_ENV !== 'production') logger.info('⚠️  Twilio não configurado (TWILIO_ACCOUNT_SID ou TWILIO_AUTH_TOKEN ausentes)');
     return null;
   }
 
   if (!pedido.clienteTelefone) {
-    console.log('⚠️  Cliente sem telefone cadastrado');
+    if (process.env.NODE_ENV !== 'production') logger.info('⚠️  Cliente sem telefone cadastrado');
     return null;
   }
 
@@ -46,10 +46,10 @@ Qualquer dúvida, entre em contato!`;
       to: telefone,
     });
     
-    console.log('✅ SMS enviado para cliente:', telefone);
+    if (process.env.NODE_ENV !== 'production') logger.info(`✅ SMS enviado para cliente: ${telefone}`);
     return message;
   } catch (error) {
-    console.error('❌ Erro ao enviar SMS para cliente:', error.message);
+    logger.error(`❌ Erro ao enviar SMS para cliente: ${error.message}`);
     throw error;
   }
 }
@@ -57,13 +57,13 @@ Qualquer dúvida, entre em contato!`;
 // Enviar SMS para o dono
 async function enviarSMSDono(pedido) {
   if (!client) {
-    console.log('⚠️  Twilio não configurado');
+    if (process.env.NODE_ENV !== 'production') logger.info('⚠️  Twilio não configurado');
     return null;
   }
 
   const telefoneDono = process.env.OWNER_PHONE;
   if (!telefoneDono) {
-    console.log('⚠️  Telefone do dono não configurado (OWNER_PHONE)');
+    if (process.env.NODE_ENV !== 'production') logger.info('⚠️  Telefone do dono não configurado (OWNER_PHONE)');
     return null;
   }
 
@@ -93,10 +93,10 @@ Acesse o painel admin para mais detalhes!`;
       to: telefone,
     });
     
-    console.log('✅ SMS enviado para dono:', telefone);
+    if (process.env.NODE_ENV !== 'production') logger.info(`✅ SMS enviado para dono: ${telefone}`);
     return message;
   } catch (error) {
-    console.error('❌ Erro ao enviar SMS para dono:', error.message);
+    logger.error(`❌ Erro ao enviar SMS para dono: ${error.message}`);
     throw error;
   }
 }

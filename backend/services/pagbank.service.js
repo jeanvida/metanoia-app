@@ -15,8 +15,10 @@ async function callPagBankApi(endpoint, method, data = null) {
     const config = { method, headers };
     if (data) config.body = JSON.stringify(data);
 
-    console.log("➡️ Chamando:", `${API_URL}/${endpoint}`);
-    console.log("📦 Body:", JSON.stringify(data, null, 2));
+        if (process.env.NODE_ENV !== 'production') {
+            logger.info(`➡️ Chamando: ${API_URL}/${endpoint}`);
+            logger.info(`📦 Body: ${JSON.stringify(data, null, 2)}`);
+        }
 
     const response = await fetchFn(`${API_URL}/${endpoint}`, config);
 
@@ -27,8 +29,10 @@ async function callPagBankApi(endpoint, method, data = null) {
         responseData = { error: "Resposta não JSON" };
     }
 
-    console.log("⬅️ Status:", response.status);
-    console.log("⬅️ Resposta:", JSON.stringify(responseData, null, 2));
+        if (process.env.NODE_ENV !== 'production') {
+            logger.info(`⬅️ Status: ${response.status}`);
+            logger.info(`⬅️ Resposta: ${JSON.stringify(responseData, null, 2)}`);
+        }
 
     if (!response.ok) {
         throw new Error(
@@ -83,7 +87,7 @@ exports.criarCobrancaPix = async (dados) => {
         return await callPagBankApi("orders", "POST", body);
 
     } catch (err) {
-        console.error("❌ Erro PIX:", err);
+        logger.error(`❌ Erro PIX: ${err}`);
         throw err;
     }
 };
@@ -148,7 +152,7 @@ exports.processarTransacaoCartao = async (dados) => {
         return await callPagBankApi("orders", "POST", body);
 
     } catch (err) {
-        console.error("❌ Erro cartão:", err);
+        logger.error(`❌ Erro cartão: ${err}`);
         throw err;
     }
 };

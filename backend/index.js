@@ -1,3 +1,6 @@
+// Middleware de autenticação admin
+const authAdmin = require('./middleware/authAdmin');
+
 const path = require("path");
 const dotenv = require("dotenv");
 const express = require("express");
@@ -5,17 +8,35 @@ const cors = require("cors");
 const { enviarEmailCliente, enviarEmailDono } = require("./services/email.service");
 const { enviarSMSCliente, enviarSMSDono } = require("./services/sms.service");
 
+// Winston para logs persistentes
+const winston = require('winston');
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.printf(({ timestamp, level, message }) => `${timestamp} [${level}]: ${message}`)
+  ),
+  transports: [
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' })
+  ]
+});
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({ format: winston.format.simple() }));
+}
+
 // Carrega .env local somente em desenvolvimento
 if (process.env.NODE_ENV !== "production") {
   dotenv.config({ path: path.resolve(__dirname, ".env") });
 }
 
+
 // Debug: log para verificar se DATABASE_URL está sendo carregada
-console.log("🔍 NODE_ENV:", process.env.NODE_ENV);
-console.log("🔍 DATABASE_URL presente:", !!process.env.DATABASE_URL);
+logger.info(`NODE_ENV: ${process.env.NODE_ENV}`);
+logger.info(`DATABASE_URL presente: ${!!process.env.DATABASE_URL}`);
 if (process.env.DATABASE_URL) {
   const masked = process.env.DATABASE_URL.replace(/:[^@]*@/, ":***@");
-  console.log("🔍 DATABASE_URL:", masked);
+  logger.info(`DATABASE_URL: ${masked}`);
 }
 
 // Prisma Client (usando o client gerado em ./generated/prisma)
@@ -43,9 +64,15 @@ app.use(
   })
 );
 
-// Middlewares
+
+// Rate limit global para rotas sensíveis
+const { defaultLimiter } = require('./middleware/rateLimit');
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Exemplo: aplicar rate limit em pedidos
+app.use('/api/pedidos', defaultLimiter);
 
 // Teste de rota
 app.get("/", (req, res) => {
@@ -61,7 +88,7 @@ app.get("/health-check-db", async (req, res) => {
       message: "Conexão com Supabase Postgres estabelecida!",
     });
   } catch (error) {
-    console.error("Erro na conexão com o DB:", error.message);
+    logger.error(`Erro na conexão com o DB: ${error.message}`);
     res.status(500).json({
       status: "ERROR",
       message: "Falha na conexão. Verifique a DATABASE_URL.",
@@ -70,13 +97,15 @@ app.get("/health-check-db", async (req, res) => {
   }
 });
 
-// Rotas de categorias
-app.post("/api/categorias", async (req, res) => {
+
+// Rotas de categorias (admin)
+app.post("/api/categorias", authAdmin, async (req, res) => {
   const { nome } = req.body;
   try {
     const cat = await prisma.categoria.create({ data: { nome } });
     res.json(cat);
   } catch (e) {
+    logger.error(`Erro ao criar categoria: ${e.message}`);
     res.status(400).json({ error: e.message });
   }
 });
@@ -86,8 +115,8 @@ app.get("/api/categorias", async (req, res) => {
   res.json(cats);
 });
 
-// Inicializar categorias padrão
-app.post("/api/init-categorias", async (req, res) => {
+// Inicializar categorias padrão (admin)
+app.post("/api/init-categorias", authAdmin, async (req, res) => {
   try {
     const categoriasPadrao = ["Hambúrgueres", "Combos", "Acompanhamentos", "Bebidas"];
     const criadas = [];
@@ -111,8 +140,8 @@ app.post("/api/init-categorias", async (req, res) => {
   }
 });
 
-// Rotas de itens
-app.post("/api/itens", async (req, res) => {
+// Rotas de itens (admin)
+app.post("/api/itens", authAdmin, async (req, res) => {
   const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes, itensCombo } = req.body;
   try {
     console.log("📝 Criando item:", { nome, preco, peso, categoriaId, selo, ingredientes, itensCombo });
@@ -157,7 +186,7 @@ app.post("/api/itens", async (req, res) => {
 });
 
 // Rota para atualizar ordem dos itens (DEVE VIR ANTES DE /api/itens/:id)
-app.put("/api/itens/reordenar", async (req, res) => {
+app.put("/api/itens/reordenar", authAdmin, async (req, res) => {
   try {
     console.log("📥 Recebendo request para reordenar itens");
     console.log("📦 Body recebido:", JSON.stringify(req.body, null, 2));
@@ -188,7 +217,7 @@ app.put("/api/itens/reordenar", async (req, res) => {
   }
 });
 
-app.put("/api/itens/:id", async (req, res) => {
+app.put("/api/itens/:id", authAdmin, async (req, res) => {
   const { id } = req.params;
   const { nome, descricao, descricaoES, descricaoEN, preco, peso, img, categoriaId, selo, ingredientes, itensCombo } = req.body;
   try {
@@ -240,7 +269,7 @@ app.put("/api/itens/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/itens/:id", async (req, res) => {
+app.delete("/api/itens/:id", authAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     console.log("🗑️ Deletando item:", id);
@@ -481,7 +510,7 @@ app.post("/api/pedidos", async (req, res) => {
 });
 
 // Rota para atualizar ordem dos ingredientes
-app.put("/api/ingredientes/reordenar", async (req, res) => {
+app.put("/api/ingredientes/reordenar", authAdmin, async (req, res) => {
   try {
     const { ingredientes } = req.body; // Array de { id, ordem }
     
@@ -542,9 +571,20 @@ app.get("/api/pedidos/recentes", async (req, res) => {
     
     res.json(pedidos);
   } catch (e) {
-    console.error("Erro ao buscar pedidos recentes:", e.message);
+    logger.error(`Erro ao buscar pedidos recentes: ${e.message}`);
     res.status(500).json({ error: "Falha ao buscar pedidos recentes." });
   }
+});
+
+
+
+// Middleware centralizado de tratamento de erros
+app.use((err, req, res, next) => {
+  logger.error(`Erro não tratado: ${err.stack || err}`);
+  res.status(err.status || 500).json({
+    error: err.message || 'Erro interno do servidor',
+    details: process.env.NODE_ENV !== 'production' ? err.stack : undefined
+  });
 });
 
 // Start server

@@ -7,7 +7,7 @@ apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.
 // Enviar email para o cliente
 async function enviarEmailCliente(pedido) {
   if (!pedido.clienteEmail) {
-    console.log('⚠️  Cliente sem email cadastrado');
+    if (process.env.NODE_ENV !== 'production') logger.info('⚠️  Cliente sem email cadastrado');
     return null;
   }
 
@@ -90,10 +90,10 @@ async function enviarEmailCliente(pedido) {
 
   try {
     const result = await apiInstance.sendTransacEmail(emailData);
-    console.log('✅ Email enviado para cliente:', pedido.clienteEmail);
+    if (process.env.NODE_ENV !== 'production') logger.info(`✅ Email enviado para cliente: ${pedido.clienteEmail}`);
     return result;
   } catch (error) {
-    console.error('❌ Erro ao enviar email para cliente:', error);
+    logger.error(`❌ Erro ao enviar email para cliente: ${error}`);
     throw error;
   }
 }
@@ -103,7 +103,7 @@ async function enviarEmailDono(pedido) {
   const emailDono = process.env.OWNER_EMAIL;
   
   if (!emailDono) {
-    console.log('⚠️  Email do dono não configurado (OWNER_EMAIL)');
+    if (process.env.NODE_ENV !== 'production') logger.info('⚠️  Email do dono não configurado (OWNER_EMAIL)');
     return null;
   }
 
@@ -191,10 +191,10 @@ async function enviarEmailDono(pedido) {
 
   try {
     const result = await apiInstance.sendTransacEmail(emailData);
-    console.log('✅ Email enviado para dono:', emailDono);
+    if (process.env.NODE_ENV !== 'production') logger.info(`✅ Email enviado para dono: ${emailDono}`);
     return result;
   } catch (error) {
-    console.error('❌ Erro ao enviar email para dono:', error);
+    logger.error(`❌ Erro ao enviar email para dono: ${error}`);
     throw error;
   }
 }
