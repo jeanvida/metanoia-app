@@ -38,12 +38,13 @@ export default function Admin() {
   // Verifica se já está logado (localStorage, sessionStorage, fallback)
   useEffect(() => {
     let logged = false;
+    let storageErro = false;
     try {
       if (window.localStorage) {
         logged = localStorage.getItem("adminLogado") === "true";
       }
     } catch (e) {
-      // localStorage bloqueado
+      storageErro = true;
     }
     if (!logged) {
       try {
@@ -51,11 +52,12 @@ export default function Admin() {
           logged = sessionStorage.getItem("adminLogado") === "true";
         }
       } catch (e) {
-        // sessionStorage bloqueado
+        storageErro = true;
       }
     }
     setLogado(logged);
-    if (!logged) {
+    // Só alerta se realmente não conseguir acessar NENHUM storage
+    if (!logged && storageErro) {
       setTimeout(() => {
         alert("Seu navegador está bloqueando o login do admin. Tente sair do modo privado ou use outro navegador.");
       }, 300);
@@ -116,21 +118,27 @@ export default function Admin() {
 
   // Login
 
+
   function handleLogin() {
     if (senha === SENHA_CORRETA) {
       let ok = false;
+      let storageErro = false;
       try {
         localStorage.setItem("adminLogado", "true");
         ok = true;
-      } catch (e) {}
+      } catch (e) {
+        storageErro = true;
+      }
       if (!ok) {
         try {
           sessionStorage.setItem("adminLogado", "true");
           ok = true;
-        } catch (e) {}
+        } catch (e) {
+          storageErro = true;
+        }
       }
       setLogado(true);
-      if (!ok) {
+      if (!ok && storageErro) {
         setTimeout(() => {
           alert("Seu navegador está bloqueando o login do admin. Tente sair do modo privado ou use outro navegador.");
         }, 300);
